@@ -11,40 +11,23 @@ import { BleManager, Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { NativeModules } from 'react-native';
+import { UseMetaWearResult } from "../hooks/useMetawear";
+
 const { MetaWearModule } = NativeModules;
-const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
-export const BluetoothScanner = () => {
+
+export const BluetoothScanner = ({ metawearState }: { metawearState: UseMetaWearResult }) => {
   const [sensors, setSensors] = useState<Device[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();
+  const {connectedDevice} = metawearState;
 
+  const connectToDevice = metawearState.connectToDevice;
   const bleManager = useRef(new BleManager()).current;
-  useEffect(() => {
-    const subscription = sensorEventEmitter.addListener('SENSOR_DATA', (data: string) => {
-      console.log("Received sensor data:", data);
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-  const connectToDevice = async (macAddress: string) => {
-    try {
-      await MetaWearModule.connectToDevice(macAddress);
-      console.log("Connected to device");
-
-      MetaWearModule.startAccelerometer();
-    } catch (error) {
-      console.error("Connection error:", error);
-      // Handle connection error
-    }
-  };
 
   useEffect(() => {
     let scanTimeout: NodeJS.Timeout;
     const subscription = bleManager.onStateChange((state) => {
       if (state === "PoweredOn") {
-        // Bluetooth is ready, so remove the subscription and start scanning.
         subscription.remove();
         setSearching(true);
 
@@ -56,7 +39,6 @@ export const BluetoothScanner = () => {
           }
 
           if (device) {
-            // Add device if it's not already in the list.
             setSensors((prevSensors) => {
               if (!prevSensors.find((d) => d.id === device.id)) {
                 return [...prevSensors, device];
@@ -66,7 +48,6 @@ export const BluetoothScanner = () => {
           }
         });
 
-        // Stop scanning after 10 seconds.
         scanTimeout = setTimeout(() => {
           bleManager.stopDeviceScan();
           bleManager.destroy();
@@ -85,12 +66,11 @@ export const BluetoothScanner = () => {
     };
   }, [bleManager]);
 
-  // When a sensor is tapped, attempt to connect.
   const handleSensorPress = (device: Device) => {
-    connectToDevice(device.id);
+    connectToDevice(device);
   };
 
-  return (
+  return !connectedDevice && (
     <>
       <FlatList
         data={sensors}
@@ -147,6 +127,7 @@ const styles = StyleSheet.create({
   },
   sensorText: {
     marginLeft: 8,
+    color: "black",
   },
   searchContainer: {
     flexDirection: "row",

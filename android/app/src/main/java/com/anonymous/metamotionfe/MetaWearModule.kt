@@ -64,6 +64,27 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             null
         }
     }
+    @ReactMethod
+    fun disconnectFromDevice(macAddress: String, promise: Promise) {
+        val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val btDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
+
+        val boardInstance = serviceBinder?.getMetaWearBoard(btDevice)
+        if (boardInstance == null) {
+            promise.reject("SERVICE_ERROR", "Bluetooth service not bound or board not found")
+            return
+        }
+        board = boardInstance
+        boardInstance.disconnectAsync().continueWith { task ->
+            if (task.isFaulted) {
+                promise.reject("DISCONN_ERROR", task.error)
+            } else {
+                promise.resolve("Disconnected from MetaWear device: $macAddress")
+            }
+            null
+        }
+
+    }
 
     private fun setupSensors() {
         board?.let { board ->
@@ -76,7 +97,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             accelerometer.acceleration().addRouteAsync { source ->
                 source.stream { data, _ ->
                     data.value(Acceleration::class.java)?.let { accel ->
-                        val dataString = "ACC: ${accel.x()}, ${accel.y()}, ${accel.z()}"
+                        val dataString = "x: ${accel.x()}, y: ${accel.y()}, z: ${accel.z()}"
                         sensorDataBuffer.add(dataString)
                         // Wysyłamy zdarzenie do JS – np. dla natychmiastowej aktualizacji UI
                         eventEmitter?.emit("SENSOR_DATA", dataString)
