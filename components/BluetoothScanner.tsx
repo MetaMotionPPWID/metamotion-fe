@@ -18,36 +18,47 @@ export const BluetoothScanner = () => {
   const bleManager = useRef(new BleManager()).current;
 
   useEffect(() => {
-    setSearching(true);
-    bleManager.startDeviceScan(null, null, (error, device) => {
-      if (error) {
-        console.error("Scan error:", error);
-        setSearching(false);
-        return;
-      }
+    let scanTimeout: NodeJS.Timeout;
+    const subscription = bleManager.onStateChange((state) => {
+      if (state === "PoweredOn") {
+        // Bluetooth is ready, so remove the subscription and start scanning.
+        subscription.remove();
+        setSearching(true);
 
-      if (device) {
-        // Add device to the list if it's not already there.
-        setSensors((prevSensors) => {
-          if (!prevSensors.find((d) => d.id === device.id)) {
-            return [...prevSensors, device];
+        bleManager.startDeviceScan(null, null, (error, device) => {
+          if (error) {
+            console.error("Scan error:", error);
+            setSearching(false);
+            return;
           }
-          return prevSensors;
-        });
-      }
-    });
 
-    // Stop searching after 10 seconds.
-    const scanTimeout = setTimeout(() => {
-      bleManager.stopDeviceScan();
-      bleManager.destroy();
-      setSearching(false);
-    }, 10000);
+          if (device) {
+            // Add device if it's not already in the list.
+            setSensors((prevSensors) => {
+              if (!prevSensors.find((d) => d.id === device.id)) {
+                return [...prevSensors, device];
+              }
+              return prevSensors;
+            });
+          }
+        });
+
+        // Stop scanning after 10 seconds.
+        scanTimeout = setTimeout(() => {
+          bleManager.stopDeviceScan();
+          bleManager.destroy();
+          setSearching(false);
+        }, 10000);
+      }
+    }, true);
 
     return () => {
+      subscription.remove();
       bleManager.stopDeviceScan();
       bleManager.destroy();
-      clearTimeout(scanTimeout);
+      if (scanTimeout) {
+        clearTimeout(scanTimeout);
+      }
     };
   }, [bleManager]);
 
