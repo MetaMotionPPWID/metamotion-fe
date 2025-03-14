@@ -5,17 +5,40 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  NativeEventEmitter,
 } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-
+import { NativeModules } from 'react-native';
+const { MetaWearModule } = NativeModules;
+const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
 export const BluetoothScanner = () => {
   const [sensors, setSensors] = useState<Device[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();
 
   const bleManager = useRef(new BleManager()).current;
+  useEffect(() => {
+    const subscription = sensorEventEmitter.addListener('SENSOR_DATA', (data: string) => {
+      console.log("Received sensor data:", data);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+  const connectToDevice = async (macAddress: string) => {
+    try {
+      await MetaWearModule.connectToDevice(macAddress);
+      console.log("Connected to device");
+
+      MetaWearModule.startAccelerometer();
+    } catch (error) {
+      console.error("Connection error:", error);
+      // Handle connection error
+    }
+  };
 
   useEffect(() => {
     let scanTimeout: NodeJS.Timeout;
@@ -64,20 +87,7 @@ export const BluetoothScanner = () => {
 
   // When a sensor is tapped, attempt to connect.
   const handleSensorPress = (device: Device) => {
-    bleManager.stopDeviceScan();
-    setSelectedDevice(device);
-
-    device
-      .connect()
-      .then((dev) => dev.discoverAllServicesAndCharacteristics())
-      .then((dev) => {
-        console.log("Connected to sensor:", dev.name || dev.id);
-        setSelectedDevice(undefined);
-      })
-      .catch((error) => {
-        console.error("Connection error:", error);
-        setSelectedDevice(undefined);
-      });
+    connectToDevice(device.id);
   };
 
   return (
