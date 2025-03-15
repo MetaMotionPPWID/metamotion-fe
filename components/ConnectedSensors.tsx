@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   FlatList,
@@ -9,6 +9,7 @@ import {
 import { Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { useMetawear, UseMetaWearResult } from "../hooks/useMetawear";
 
 const MOCK_SENSORS: Partial<Device>[] = [
   { id: "1", name: "Mock Sensor 1" },
@@ -16,17 +17,26 @@ const MOCK_SENSORS: Partial<Device>[] = [
   { id: "3", name: "Mock Sensor 3" },
 ];
 
-export const ConnectedSensors = () => {
+export const ConnectedSensors = ({metawearState} : {metawearState: UseMetaWearResult}) => {
+  const connectedDevice = metawearState.connectedDevice;
   const [selectedDevice, setSelectedDevice] = useState<Partial<Device>>();
+  const disconnectDevice = metawearState.disconnectDevice;
+
+  useEffect(() => {
+    console.log(connectedDevice?.name, " connectedDevice")
+  }, [connectedDevice]);
 
   const handleSensorPress = (device: Partial<Device>) => {
-    setSelectedDevice(device);
+    if(device.id) {
+      disconnectDevice(device.id);
+    }
+    console.log(connectedDevice)
   };
 
-  return (
+  return connectedDevice && (
     <>
       <FlatList
-        data={MOCK_SENSORS}
+        data={connectedDevice && connectedDevice.id && connectedDevice.name ? [{id: connectedDevice.id, name: connectedDevice.name}] : [{id:"0", name:'No connections...'}]}
         keyExtractor={(item) => item.id!}
         scrollEnabled={false}
         renderItem={({ item }) => (
@@ -69,8 +79,10 @@ const styles = StyleSheet.create({
   sensorItem: {
     flexDirection: "row",
     alignItems: "center",
+    
   },
   sensorText: {
     marginLeft: 8,
+    color: "black",
   },
 });

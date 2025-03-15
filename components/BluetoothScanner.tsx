@@ -5,23 +5,29 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  NativeEventEmitter,
 } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { NativeModules } from 'react-native';
+import { UseMetaWearResult } from "../hooks/useMetawear";
 
-export const BluetoothScanner = () => {
+const { MetaWearModule } = NativeModules;
+
+export const BluetoothScanner = ({ metawearState }: { metawearState: UseMetaWearResult }) => {
   const [sensors, setSensors] = useState<Device[]>([]);
   const [searching, setSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();
+  const {connectedDevice} = metawearState;
 
+  const connectToDevice = metawearState.connectToDevice;
   const bleManager = useRef(new BleManager()).current;
 
   useEffect(() => {
     let scanTimeout: NodeJS.Timeout;
     const subscription = bleManager.onStateChange((state) => {
       if (state === "PoweredOn") {
-        // Bluetooth is ready, so remove the subscription and start scanning.
         subscription.remove();
         setSearching(true);
 
@@ -33,7 +39,6 @@ export const BluetoothScanner = () => {
           }
 
           if (device) {
-            // Add device if it's not already in the list.
             setSensors((prevSensors) => {
               if (!prevSensors.find((d) => d.id === device.id)) {
                 return [...prevSensors, device];
@@ -43,7 +48,6 @@ export const BluetoothScanner = () => {
           }
         });
 
-        // Stop scanning after 10 seconds.
         scanTimeout = setTimeout(() => {
           bleManager.stopDeviceScan();
           bleManager.destroy();
@@ -62,25 +66,11 @@ export const BluetoothScanner = () => {
     };
   }, [bleManager]);
 
-  // When a sensor is tapped, attempt to connect.
   const handleSensorPress = (device: Device) => {
-    bleManager.stopDeviceScan();
-    setSelectedDevice(device);
-
-    device
-      .connect()
-      .then((dev) => dev.discoverAllServicesAndCharacteristics())
-      .then((dev) => {
-        console.log("Connected to sensor:", dev.name || dev.id);
-        setSelectedDevice(undefined);
-      })
-      .catch((error) => {
-        console.error("Connection error:", error);
-        setSelectedDevice(undefined);
-      });
+    connectToDevice(device);
   };
 
-  return (
+  return !connectedDevice && (
     <>
       <FlatList
         data={sensors}
@@ -137,6 +127,7 @@ const styles = StyleSheet.create({
   },
   sensorText: {
     marginLeft: 8,
+    color: "black",
   },
   searchContainer: {
     flexDirection: "row",
