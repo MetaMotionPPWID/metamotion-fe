@@ -6,8 +6,12 @@ import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { BluetoothScanner } from "@/components/BluetoothScanner";
 import { ConnectedSensors } from "@/components/ConnectedSensors";
+import { useMetawear } from "@/hooks/useMetawear";
+import AccelerometerGraph from "@/components/AccelerometerGraph";
 
 export default function BluetoothScreen() {
+  const metawearState = useMetawear();
+  
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#DDA05D", dark: "#DDA05D" }}
@@ -26,15 +30,18 @@ export default function BluetoothScreen() {
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Connected sensors</ThemedText>
         <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
-        <ConnectedSensors />
+        <ConnectedSensors metawearState={metawearState}/>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
+      !connectedDevice &&<ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Available sensors</ThemedText>
         <ThemedText type="default">
           Tap a sensor to establish a connection.
         </ThemedText>
-        <BluetoothScanner />
+        <BluetoothScanner metawearState={metawearState} />
       </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <AccelerometerGraph metawearState={metawearState}/>
+        </ThemedView>
     </ParallaxScrollView>
   );
 }
