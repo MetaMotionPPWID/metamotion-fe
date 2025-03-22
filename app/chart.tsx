@@ -1,11 +1,27 @@
-import { BarChart, LineChart, PieChart, PopulationPyramid, RadarChart } from "react-native-gifted-charts";
+import { fetchData } from "@/api_service/api_service";
+import { useEffect, useState } from "react";
+import { BarChart } from "react-native-gifted-charts";
 
 export default function Chart() {
-    const data = [{value: 15}, {value: 30}, {value: 26}, {value: 40}];
+  const [data, setData] = useState<any[]>([]);
 
-    return (
-        <>
-            return <BarChart data={data}/>;
-        </>
-    )
+  useEffect(() => {
+    const fetchDataAsync = async () => {
+      const motionData = await fetchData();
+      const accelerationData = motionData.samples[0].acceleration.map(
+        (sample) => ({
+          value: sample,
+        })
+      );
+      setData(accelerationData);
+    };
+
+    fetchDataAsync();
+  }, []);
+
+  return (
+    <>
+      <BarChart data={data} />
+    </>
+  );
 }
