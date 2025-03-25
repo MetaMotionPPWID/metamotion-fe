@@ -54,27 +54,34 @@ export const useMetawear = (): UseMetaWearResult => {
   const [sensorData, setSensorData] = useState<string[]>([]);
   const [isMonitoring, setIsMonitoring] = useState<boolean>(false);
   
- useEffect(() => {
-  const subscription = sensorEventEmitter.addListener('SENSOR_DATA', (dataString: string) => {
-    const parsedData = parseAccData(dataString);
-    
-    setDataPoints(prevData => {
-      const newData = [...prevData, parsedData];
-      if (newData.length > MAX_DATA_POINTS) {
-        return newData.slice(newData.length - MAX_DATA_POINTS);
-      }
-      return newData;
-    });
-  });
+  useEffect(() => {
+     const subscription = sensorEventEmitter.addListener('SENSOR_DATA', (dataString: string) => {
+       try {
+         const parsedData = parseAccData(dataString);
+         setDataPoints(prevData => {
+           const newData = [...prevData, parsedData];
+           if (newData.length > MAX_DATA_POINTS) {
+             return newData.slice(newData.length - MAX_DATA_POINTS);
+           }
+           return newData;
+         });
+       } catch (error) {
+         console.error('Error processing sensor data:', error);
+       }
+     });
 
-  return () => {
-    subscription.remove();
-  };
-}, []);
+     return () => {
+       subscription.remove();
+     };
+   }, []);
 
-  const startAccelerator = () => {
-    MetaWearModule.startAccelerometer();
-  }
+   const startAccelerator = () => {
+     try {
+       MetaWearModule.startAccelerometer();
+     } catch (error) {
+       console.error('Error starting accelerometer:', error);
+     }
+   }
 
   const connectToDevice = async (device: Device): Promise<void> => {
     if(device.id){
@@ -91,6 +98,26 @@ export const useMetawear = (): UseMetaWearResult => {
     }
 
   };
+  const disconnectDeviceGracefully = async (deviceId: string): Promise<void> => {
+      if (deviceId) {
+        try {
+          console.log("Attempting graceful disconnect...");
+          // Optionally, you can stop any active monitoring or other sensor actions before disconnecting.
+          await MetaWearModule.stopAccelerometer();
+          console.log("Accelerometer stopped.");
+
+          // Then disconnect
+          await MetaWearModule.disconnectFromDevice(deviceId);
+          console.log("Disconnected from device gracefully.");
+
+          // Clear connected device state
+          setConnectedDevice(null);
+        } catch (error) {
+          console.error("Error during graceful disconnection:", error);
+          alert('Failed to gracefully disconnect from device. Please try again.');
+        }
+      }
+    };
   const disconnectDevice = async (deviceId: string): Promise<void> => {
     if(deviceId){
       try {
