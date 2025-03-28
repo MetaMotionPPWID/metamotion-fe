@@ -1,62 +1,84 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, Dimensions, TouchableOpacity, Text } from 'react-native';
-import { LineChart } from 'react-native-chart-kit';
-import { NativeEventEmitter, NativeModules } from 'react-native';
-import { UseMetaWearResult } from '@/hooks/useMetawear';
+import React, { useState, useCallback } from "react";
+import {
+  View,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+} from "react-native";
+import { LineChart } from "react-native-chart-kit";
+import { useMetawear } from "@/hooks/useMetawear";
 
-const { width } = Dimensions.get('window');
-const { MetaWearModule } = NativeModules;
+const { width } = Dimensions.get("window");
 
-
-const AccelerometerGraph = ({metawearState} : {metawearState: UseMetaWearResult}) => {
+const AccelerometerGraph = () => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
+
+  const metawearState = useMetawear();
   const dataPoints = metawearState.dataPoints;
 
-
-
-  const toggleAxis = useCallback((axis: 'x' | 'y' | 'z') => {
-    setVisibleAxes(prev => ({
+  const toggleAxis = useCallback((axis: "x" | "y" | "z") => {
+    setVisibleAxes((prev) => ({
       ...prev,
-      [axis]: !prev[axis]
+      [axis]: !prev[axis],
     }));
   }, []);
 
   const chartData = {
-    labels: dataPoints.length > 0 
-      ? Array(Math.min(6, dataPoints.length)).fill('').map((_, i) => 
-          `${Math.round((dataPoints.length - 1 - i * (dataPoints.length / 6)) * 10) / 10}s`)
-      : ['0s'],
+    labels:
+      dataPoints.length > 0
+        ? Array(Math.min(6, dataPoints.length))
+            .fill("")
+            .map(
+              (_, i) =>
+                `${Math.round((dataPoints.length - 1 - i * (dataPoints.length / 6)) * 10) / 10}s`,
+            )
+        : ["0s"],
     datasets: [
-      ...(visibleAxes.x ? [{
-        data: dataPoints.map(p => p.x),
-        color: () => 'rgba(255, 0, 0, 0.8)', // Red for X
-        strokeWidth: 2,
-      }] : []),
-      ...(visibleAxes.y ? [{
-        data: dataPoints.map(p => p.y),
-        color: () => 'rgba(0, 255, 0, 0.8)', // Green for Y
-        strokeWidth: 2,
-      }] : []),
-      ...(visibleAxes.z ? [{
-        data: dataPoints.map(p => p.z),
-        color: () => 'rgba(0, 0, 255, 0.8)', // Blue for Z
-        strokeWidth: 2,
-      }] : []),
+      ...(visibleAxes.x
+        ? [
+            {
+              data: dataPoints.map((p) => p.x),
+              color: () => "rgba(255, 0, 0, 0.8)",
+              strokeWidth: 2,
+            },
+          ]
+        : []),
+      ...(visibleAxes.y
+        ? [
+            {
+              data: dataPoints.map((p) => p.y),
+              color: () => "rgba(0, 255, 0, 0.8)",
+              strokeWidth: 2,
+            },
+          ]
+        : []),
+      ...(visibleAxes.z
+        ? [
+            {
+              data: dataPoints.map((p) => p.z),
+              color: () => "rgba(0, 0, 255, 0.8)",
+              strokeWidth: 2,
+            },
+          ]
+        : []),
     ],
     legend: [
-      ...(visibleAxes.x ? ['X-axis'] : []),
-      ...(visibleAxes.y ? ['Y-axis'] : []),
-      ...(visibleAxes.z ? ['Z-axis'] : []),
-    ]
+      ...(visibleAxes.x ? ["X-axis"] : []),
+      ...(visibleAxes.y ? ["Y-axis"] : []),
+      ...(visibleAxes.z ? ["Z-axis"] : []),
+    ],
   };
 
-  // Get the latest values for display
-  const latestData = dataPoints.length > 0 ? dataPoints[dataPoints.length - 1] : { x: 0, y: 0, z: 0 };
+  const latestData =
+    dataPoints.length > 0
+      ? dataPoints[dataPoints.length - 1]
+      : { x: 0, y: 0, z: 0 };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Accelerometer Data</Text>
-      
+
       {dataPoints.length === 0 ? (
         <View style={styles.placeholderChart}>
           <Text style={styles.placeholderText}>Waiting for data...</Text>
@@ -67,9 +89,9 @@ const AccelerometerGraph = ({metawearState} : {metawearState: UseMetaWearResult}
           width={width - 32}
           height={220}
           chartConfig={{
-            backgroundColor: '#f5f5f5',
-            backgroundGradientFrom: '#f5f5f5',
-            backgroundGradientTo: '#f5f5f5',
+            backgroundColor: "#f5f5f5",
+            backgroundGradientFrom: "#f5f5f5",
+            backgroundGradientTo: "#f5f5f5",
             decimalPlaces: 2,
             color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
             labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
@@ -77,7 +99,7 @@ const AccelerometerGraph = ({metawearState} : {metawearState: UseMetaWearResult}
               borderRadius: 16,
             },
             propsForDots: {
-              r: '3',
+              r: "3",
             },
           }}
           bezier
@@ -89,34 +111,73 @@ const AccelerometerGraph = ({metawearState} : {metawearState: UseMetaWearResult}
           yAxisInterval={0.2}
         />
       )}
-      
+
       <View style={styles.axisControls}>
-        <TouchableOpacity 
-          style={[styles.axisButton, visibleAxes.x ? styles.axisButtonActive : null, styles.xAxisButton]} 
-          onPress={() => toggleAxis('x')}
+        <TouchableOpacity
+          style={[
+            styles.axisButton,
+            visibleAxes.x ? styles.axisButtonActive : null,
+            styles.xAxisButton,
+          ]}
+          onPress={() => toggleAxis("x")}
         >
-          <Text style={[styles.axisButtonText, visibleAxes.x ? styles.axisButtonTextActive : null]}>X</Text>
+          <Text
+            style={[
+              styles.axisButtonText,
+              visibleAxes.x ? styles.axisButtonTextActive : null,
+            ]}
+          >
+            X
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.axisButton, visibleAxes.y ? styles.axisButtonActive : null, styles.yAxisButton]} 
-          onPress={() => toggleAxis('y')}
+        <TouchableOpacity
+          style={[
+            styles.axisButton,
+            visibleAxes.y ? styles.axisButtonActive : null,
+            styles.yAxisButton,
+          ]}
+          onPress={() => toggleAxis("y")}
         >
-          <Text style={[styles.axisButtonText, visibleAxes.y ? styles.axisButtonTextActive : null]}>Y</Text>
+          <Text
+            style={[
+              styles.axisButtonText,
+              visibleAxes.y ? styles.axisButtonTextActive : null,
+            ]}
+          >
+            Y
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={[styles.axisButton, visibleAxes.z ? styles.axisButtonActive : null, styles.zAxisButton]} 
-          onPress={() => toggleAxis('z')}
+        <TouchableOpacity
+          style={[
+            styles.axisButton,
+            visibleAxes.z ? styles.axisButtonActive : null,
+            styles.zAxisButton,
+          ]}
+          onPress={() => toggleAxis("z")}
         >
-          <Text style={[styles.axisButtonText, visibleAxes.z ? styles.axisButtonTextActive : null]}>Z</Text>
+          <Text
+            style={[
+              styles.axisButtonText,
+              visibleAxes.z ? styles.axisButtonTextActive : null,
+            ]}
+          >
+            Z
+          </Text>
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.currentValues}>
         <Text style={styles.valuesTitle}>Current Values:</Text>
         <View style={styles.valuesRow}>
-          <Text style={[styles.axisLabel, styles.xAxisLabel]}>X: {latestData.x.toFixed(4)}</Text>
-          <Text style={[styles.axisLabel, styles.yAxisLabel]}>Y: {latestData.y.toFixed(4)}</Text>
-          <Text style={[styles.axisLabel, styles.zAxisLabel]}>Z: {latestData.z.toFixed(4)}</Text>
+          <Text style={[styles.axisLabel, styles.xAxisLabel]}>
+            X: {latestData.x.toFixed(4)}
+          </Text>
+          <Text style={[styles.axisLabel, styles.yAxisLabel]}>
+            Y: {latestData.y.toFixed(4)}
+          </Text>
+          <Text style={[styles.axisLabel, styles.zAxisLabel]}>
+            Z: {latestData.z.toFixed(4)}
+          </Text>
         </View>
       </View>
     </View>
@@ -126,19 +187,19 @@ const AccelerometerGraph = ({metawearState} : {metawearState: UseMetaWearResult}
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 8,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.2,
     shadowRadius: 1,
   },
   title: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   chart: {
     marginVertical: 8,
@@ -146,18 +207,18 @@ const styles = StyleSheet.create({
   },
   placeholderChart: {
     height: 220,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   placeholderText: {
-    color: '#666',
+    color: "#666",
     fontSize: 16,
   },
   axisControls: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
     marginTop: 12,
   },
   axisButton: {
@@ -165,57 +226,57 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 20,
     marginHorizontal: 8,
-    backgroundColor: '#eee',
+    backgroundColor: "#eee",
   },
   axisButtonActive: {
-    backgroundColor: '#333',
+    backgroundColor: "#333",
   },
   xAxisButton: {
-    borderColor: 'red',
+    borderColor: "red",
     borderWidth: 1,
   },
   yAxisButton: {
-    borderColor: 'green',
+    borderColor: "green",
     borderWidth: 1,
   },
   zAxisButton: {
-    borderColor: 'blue',
+    borderColor: "blue",
     borderWidth: 1,
   },
   axisButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   axisButtonTextActive: {
-    color: 'white',
+    color: "white",
   },
   currentValues: {
     marginTop: 16,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     padding: 12,
     borderRadius: 8,
   },
   valuesTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
   },
   valuesRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   axisLabel: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   xAxisLabel: {
-    color: 'red',
+    color: "red",
   },
   yAxisLabel: {
-    color: 'green',
+    color: "green",
   },
   zAxisLabel: {
-    color: 'blue',
+    color: "blue",
   },
 });
 
