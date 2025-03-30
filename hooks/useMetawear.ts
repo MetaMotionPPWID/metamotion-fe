@@ -44,12 +44,12 @@ export const useMetawear = (): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
 
+  // Listen for accelerometer data from native side
   useEffect(() => {
     const subscription = sensorEventEmitter.addListener(
       "SENSOR_DATA",
       (dataString: string) => {
         const parsedData = parseAcceleratorData(dataString);
-
         setDataPoints((prevData) => {
           const newData = [...prevData, parsedData];
           if (newData.length > MAX_DATA_POINTS) {
@@ -65,7 +65,10 @@ export const useMetawear = (): UseMetaWearResult => {
     };
   }, []);
 
+  // Connect to device (Android = MAC address, iOS = UUID)
   const connectToDevice = async (device: Device): Promise<void> => {
+    // On Android, device.id is typically the MAC
+    // On iOS, device.id is typically the CBPeripheral.identifier (UUID)
     if (device.id) {
       try {
         await MetaWearModule.connectToDevice(device.id);
@@ -76,13 +79,14 @@ export const useMetawear = (): UseMetaWearResult => {
     }
   };
 
+  // Disconnect from device
   const disconnectDevice = async (deviceId: string): Promise<void> => {
     if (deviceId) {
       try {
         await MetaWearModule.disconnectFromDevice(deviceId);
         setConnectedDevice(null);
       } catch (error) {
-        console.error("Connection error:", error);
+        console.error("Disconnection error:", error);
       }
     }
   };

@@ -29,7 +29,6 @@ export default function BluetoothScreen() {
         <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
         <ConnectedSensors />
       </ThemedView>
-      !connectedDevice &&
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Available sensors</ThemedText>
         <ThemedText type="default">
