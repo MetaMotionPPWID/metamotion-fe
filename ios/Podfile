@@ -64,5 +64,15 @@ target 'metamotionfe' do
         end
       end
     end
+
+    installer.pods_project.targets.each do |target|
+      # Force the 'MetaWear' pod to use C++14 or C++17
+      if target.name == 'MetaWear'
+        target.build_configurations.each do |build_config|
+          build_config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++17'
+          build_config.build_settings['CLANG_CXX_LIBRARY'] = 'libc++'
+        end
+      end
+    end
   end
 end
