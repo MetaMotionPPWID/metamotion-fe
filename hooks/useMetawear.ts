@@ -5,6 +5,18 @@ import { Device } from "react-native-ble-plx";
 const { MetaWearModule } = NativeModules;
 const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
 
+if (!MetaWearModule) {
+  console.error(
+    "MetaWearModule is not available in NativeModules:",
+    Object.keys(NativeModules),
+  );
+} else {
+  console.log(
+    "MetaWearModule found with methods:",
+    Object.keys(MetaWearModule),
+  );
+}
+
 const parseAcceleratorData = (dataString: string) => {
   try {
     // Match patterns like "x: -0.060791016, y: 6.1035156E-4, z: -0.98516846"
