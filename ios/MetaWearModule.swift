@@ -113,13 +113,14 @@ class MetaWearModule: RCTEventEmitter {
         MetaWearScanner.shared.stopScan()
         self.device = found
 
-        do {
-          // 4.x connectAndSetup() is synchronous but can throw on failure.
-          try found.connectAndSetup()
-          self.startAccelerometerStreaming()
-          resolve("Connected to device: \(identifier)")
-        } catch {
-          reject("CONN_ERROR", "Connect failed: \(error.localizedDescription)", nil)
+        Task {
+          do {
+            try await found.connectAndSetup()
+            self.startAccelerometerStreaming()
+            resolve("Connected to device: \(identifier)")
+          } catch {
+            reject("CONN_ERROR", "Connect failed: \(error.localizedDescription)", nil)
+          }
         }
       }
     }
