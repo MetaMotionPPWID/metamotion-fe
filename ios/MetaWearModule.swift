@@ -160,28 +160,35 @@ class MetaWearModule: RCTEventEmitter {
    * Data is sent to JS via the static `accelerometerCallback`.
    */
   private func startAccelerometerStreaming() {
-    guard let dev = device else { return }
+      guard let dev = device else {
+          return
+      }
 
-    // Retrieve the accelerometer data signal.
-    if let signal = mbl_mw_acc_get_acceleration_data_signal(dev.board) {
-      // Convert 'self' into a raw pointer we can recover later.
-      let contextPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+      // 1) Check that the board actually reports an accelerometer module:
+      let accType = mbl_mw_metawearboard_lookup_module(dev.board, MBL_MW_MODULE_ACCELEROMETER)
+      guard accType != MBL_MW_MODULE_TYPE_NA else {
+          // No accelerometer on this board. Don’t crash by calling get_acceleration_data_signal().
+          NSLog("No accelerometer module on this board!")
+          return
+      }
 
-      // Subscribe using the static C-compatible callback.
-      mbl_mw_datasignal_subscribe(
-        signal,
-        contextPtr,
-        MetaWearModule.accelerometerCallback
-      )
+      // 2) Now safely fetch the accelerometer signal:
+      if let signal = mbl_mw_acc_get_acceleration_data_signal(dev.board) {
+          // Convert self -> raw pointer
+          let contextPtr = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+          mbl_mw_datasignal_subscribe(signal, contextPtr, MetaWearModule.accelerometerCallback)
 
-      // Configure and start the accelerometer.
-      mbl_mw_acc_set_odr(dev.board, 50.0)   // 50 Hz
-      mbl_mw_acc_set_range(dev.board, 4.0)  // ±4g range
-      mbl_mw_acc_write_acceleration_config(dev.board)
-      mbl_mw_acc_enable_acceleration_sampling(dev.board)
-      mbl_mw_acc_start(dev.board)
-    }
+          // 3) Configure
+          mbl_mw_acc_set_odr(dev.board, 50.0)   // e.g. 50 Hz
+          mbl_mw_acc_set_range(dev.board, 4.0)  // ±4g
+          mbl_mw_acc_write_acceleration_config(dev.board)
+
+          // 4) Start sampling
+          mbl_mw_acc_enable_acceleration_sampling(dev.board)
+          mbl_mw_acc_start(dev.board)
+      }
   }
+
 
   // MARK: - RCTEventEmitter Housekeeping
 
