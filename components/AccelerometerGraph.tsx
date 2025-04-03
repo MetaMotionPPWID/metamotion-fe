@@ -7,15 +7,18 @@ import {
   Text,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { useMetawear } from "@/hooks/useMetawear";
+import { UseMetaWearResult } from "@/hooks/useMetawear";
 
 const { width } = Dimensions.get("window");
 
-const AccelerometerGraph = () => {
+const AccelerometerGraph = ({
+  metaWearState,
+}: {
+  metaWearState: UseMetaWearResult;
+}) => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
 
-  const metawearState = useMetawear();
-  const dataPoints = metawearState.dataPoints;
+  const dataPoints = metaWearState.dataPoints;
 
   const toggleAxis = useCallback((axis: "x" | "y" | "z") => {
     setVisibleAxes((prev) => ({
