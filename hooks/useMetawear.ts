@@ -44,7 +44,6 @@ export const useMetawear = (): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
 
-  // Listen for accelerometer data from native side
   useEffect(() => {
     const subscription = sensorEventEmitter.addListener(
       "SENSOR_DATA",
@@ -65,7 +64,6 @@ export const useMetawear = (): UseMetaWearResult => {
     };
   }, []);
 
-  // Connect to device (Android = MAC address, iOS = UUID)
   const connectToDevice = async (device: Device): Promise<void> => {
     // On Android, device.id is typically the MAC
     // On iOS, device.id is typically the CBPeripheral.identifier (UUID)
@@ -79,7 +77,6 @@ export const useMetawear = (): UseMetaWearResult => {
     }
   };
 
-  // Disconnect from device
   const disconnectDevice = async (deviceId: string): Promise<void> => {
     if (deviceId) {
       try {
