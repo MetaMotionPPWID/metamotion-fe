@@ -128,7 +128,7 @@ class MetaWearModule: RCTEventEmitter {
     mbl_mw_led_write_pattern(dev.board, &pattern, MBL_MW_LED_COLOR_RED)
     mbl_mw_led_play(dev.board)
 
-    DispatchQueue.main.asyncAfter(deadline: .now() ) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5 ) {
       dev.cancelConnection()
       self.device = nil
       resolve("Disconnected from device: \(identifier)")
