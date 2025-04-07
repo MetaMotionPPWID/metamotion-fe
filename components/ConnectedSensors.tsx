@@ -1,19 +1,31 @@
-import React from "react";
-import { StyleSheet, FlatList, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import { Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { useMetawear } from "@/hooks/useMetawear";
+import { UseMetaWearResult } from "@/hooks/useMetawear";
 
-export const ConnectedSensors = () => {
-  const metawearState = useMetawear();
+export const ConnectedSensors = ({
+  metaWearState,
+}: {
+  metaWearState: UseMetaWearResult;
+}) => {
+  const [selectedDevice, setSelectedDevice] = useState<Partial<Device>>();
 
-  const connectedDevice = metawearState.connectedDevice;
-  const disconnectDevice = metawearState.disconnectDevice;
+  const connectedDevice = metaWearState.connectedDevice;
+  const disconnectDevice = metaWearState.disconnectDevice;
 
-  const handleSensorPress = (device: Partial<Device>) => {
+  const handleSensorPress = async (device: Partial<Device>) => {
+    setSelectedDevice(device);
     if (device.id) {
-      disconnectDevice(device.id);
+      await disconnectDevice(device.id);
+      setSelectedDevice(undefined);
     }
   };
 
@@ -40,6 +52,9 @@ export const ConnectedSensors = () => {
                   {item.name ? item.name : "Unnamed sensor"}
                 </ThemedText>
               </View>
+              {selectedDevice?.id === item.id && (
+                <ActivityIndicator size="small" color="#303030" />
+              )}
             </TouchableOpacity>
           )}
           contentContainerStyle={styles.sensorListContainer}

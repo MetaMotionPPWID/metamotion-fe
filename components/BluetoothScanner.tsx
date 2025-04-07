@@ -9,17 +9,20 @@ import {
 import { BleManager, Device } from "react-native-ble-plx";
 import { ThemedText } from "@/components/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
-import { useMetawear } from "@/hooks/useMetawear";
+import { UseMetaWearResult } from "@/hooks/useMetawear";
 
-export const BluetoothScanner = () => {
+export const BluetoothScanner = ({
+  metaWearState,
+}: {
+  metaWearState: UseMetaWearResult;
+}) => {
   const [sensors, setSensors] = useState<Device[]>([]);
-  const [searching, setSearching] = useState<boolean>(false);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();
 
-  const metawearState = useMetawear();
-  const { connectedDevice } = metawearState;
+  const { connectedDevice } = metaWearState;
 
-  const connectToDevice = metawearState.connectToDevice;
+  const connectToDevice = metaWearState.connectToDevice;
   const bleManager = useRef(new BleManager()).current;
 
   useEffect(() => {
@@ -27,12 +30,12 @@ export const BluetoothScanner = () => {
     const subscription = bleManager.onStateChange((state) => {
       if (state === "PoweredOn") {
         subscription.remove();
-        setSearching(true);
+        setIsSearching(true);
 
         bleManager.startDeviceScan(null, null, (error, device) => {
           if (error) {
             console.error("Scan error:", error);
-            setSearching(false);
+            setIsSearching(false);
             return;
           }
 
@@ -49,7 +52,7 @@ export const BluetoothScanner = () => {
         scanTimeout = setTimeout(() => {
           bleManager.stopDeviceScan();
           bleManager.destroy();
-          setSearching(false);
+          setIsSearching(false);
         }, 10000);
       }
     }, true);
@@ -64,9 +67,10 @@ export const BluetoothScanner = () => {
     };
   }, [bleManager]);
 
-  const handleSensorPress = (device: Device) => {
+  const handleSensorPress = async (device: Device) => {
     setSelectedDevice(device);
-    connectToDevice(device);
+    await connectToDevice(device);
+    setSelectedDevice(undefined);
   };
 
   return (
@@ -95,7 +99,7 @@ export const BluetoothScanner = () => {
           )}
           contentContainerStyle={styles.sensorListContainer}
         />
-        {searching && (
+        {isSearching && (
           <View style={styles.searchContainer}>
             <ActivityIndicator size="small" color="#303030" />
             <ThemedText type="default" style={styles.searchText}>
