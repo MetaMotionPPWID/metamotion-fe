@@ -9,7 +9,7 @@ import { ConnectedSensors } from "@/components/ConnectedSensors";
 import AccelerometerGraph from "@/components/AccelerometerGraph";
 import { useMetawear } from "@/hooks/useMetawear";
 
-export default function BluetoothScreen() {
+export default function SensorsScreen() {
   const metaWearState = useMetawear();
 
   return (
