@@ -16,6 +16,7 @@ const MAPPING = {
   "sensor.tag.radiowaves.forward": "sensors",
   "sensor.tag.radiowaves.forward.fill": "sensors",
   "wifi.square.fill": "broadcast-on-personal",
+  analytics: "bar-chart",
 } as Partial<
   Record<
     import("expo-symbols").SymbolViewProps["name"],

@@ -9,12 +9,12 @@ import Chart from "../chart";
 export default function AnalyticsScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#DDA05D", dark: "#DDA05D" }}
+      headerBackgroundColor={{ light: "#D0D0D0", dark: "#DDA05D" }}
       headerImage={
         <IconSymbol
           size={310}
           color="#2A2A2A"
-          name="sensor.tag.radiowaves.forward"
+          name="analytics"
           style={styles.headerImage}
         />
       }
