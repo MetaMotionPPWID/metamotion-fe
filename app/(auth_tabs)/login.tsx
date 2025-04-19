@@ -3,18 +3,38 @@ import { StyleSheet, TextInput, Button, Alert } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useRouter } from "expo-router";
+import axios from "axios";
+import { baseApiUrl } from "@/api_service/api_base";
+import { useAuth } from "../authContext";
 
 export default function LoginScreen() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
+  const { setTokens } = useAuth();
 
-  const handleLogin = () => {
-    if (username === "admin" && password === "password") {
-      Alert.alert("Login Successful", "Welcome!");
-      router.replace("(tabs)"); // Redirect to the home page
-    } else {
-      Alert.alert("Login Failed", "Invalid username or password.");
+  const handleLogin = async () => {
+    if (!username || !password) {
+      Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(baseApiUrl + "/auth/login", {
+        login: username,
+        password: password,
+      });
+
+      if (response.status === 200) {
+        const { access_token, refresh_token } = response.data;
+        setTokens(access_token, refresh_token);
+        Alert.alert("Login Successful", "Welcome!");
+        router.replace("(tabs)");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "An error occurred during login.";
+      Alert.alert("Error", errorMessage);
     }
   };
 
