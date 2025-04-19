@@ -1,12 +1,20 @@
 import { StyleSheet } from "react-native";
+import { useEffect } from "react";
 
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import Chart from "../chart";
-
+import { useAuth } from "../authContext";
 export default function AnalyticsScreen() {
+  const { accessToken, refreshToken } = useAuth();
+
+  useEffect(() => {
+    console.log("Access Token:", accessToken);
+    console.log("Refresh Token:", refreshToken);
+  }, [accessToken, refreshToken]);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#DDA05D" }}
