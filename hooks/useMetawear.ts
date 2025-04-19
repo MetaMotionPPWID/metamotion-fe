@@ -24,6 +24,18 @@ const parseAcceleratorData = (dataString: string) => {
   }
 };
 
+const parseGyroscopeData = (dataString: string): DataPoint => {
+  const xMatch = dataString.match(/x:\s*([-\d.E-]+)/);
+  const yMatch = dataString.match(/y:\s*([-\d.E-]+)/);
+  const zMatch = dataString.match(/z:\s*([-\d.E-]+)/);
+  return {
+    x: xMatch ? parseFloat(xMatch[1]) : 0,
+    y: yMatch ? parseFloat(yMatch[1]) : 0,
+    z: zMatch ? parseFloat(zMatch[1]) : 0,
+    timestamp: Date.now(),
+  };
+};
+
 type DataPoint = {
   x: number;
   y: number;
@@ -36,6 +48,7 @@ export type UseMetaWearResult = {
   connectToDevice: (device: Device) => Promise<void>;
   disconnectDevice: (deviceId: string) => Promise<void>;
   dataPoints: DataPoint[];
+  gyroDataPoints: DataPoint[];
 };
 
 const MAX_DATA_POINTS = 50;
@@ -43,6 +56,7 @@ const MAX_DATA_POINTS = 50;
 export const useMetawear = (): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
+  const [gyroDataPoints, setGyroDataPoints] = useState<DataPoint[]>([])
 
   useEffect(() => {
     const subscription = sensorEventEmitter.addListener(
@@ -56,11 +70,23 @@ export const useMetawear = (): UseMetaWearResult => {
           }
           return newData;
         });
-      },
+      }
     );
-
+    const gyroSub = sensorEventEmitter.addListener(
+      "GYRO_DATA",
+      (dataString: string) => {
+        const parsed = parseGyroscopeData(dataString);
+        setGyroDataPoints((prev) => {
+          const buf = [...prev, parsed];
+          return buf.length > MAX_DATA_POINTS
+            ? buf.slice(buf.length - MAX_DATA_POINTS)
+            : buf;
+        });
+      }
+    );
     return () => {
       subscription.remove();
+      gyroSub.remove()
     };
   }, []);
 
@@ -93,5 +119,6 @@ export const useMetawear = (): UseMetaWearResult => {
     connectToDevice,
     disconnectDevice,
     dataPoints,
+    gyroDataPoints,
   };
 };

@@ -7,6 +7,7 @@ import { IconSymbol } from "@/components/ui/IconSymbol";
 import { BluetoothScanner } from "@/components/BluetoothScanner";
 import { ConnectedSensors } from "@/components/ConnectedSensors";
 import AccelerometerGraph from "@/components/AccelerometerGraph";
+import GyroscopeGraph from "@/components/GyroscopeGraph";
 import { useMetawear } from "@/hooks/useMetawear";
 
 export default function SensorsScreen() {
@@ -41,6 +42,9 @@ export default function SensorsScreen() {
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <AccelerometerGraph metaWearState={metaWearState} />
+      </ThemedView>
+      <ThemedView style={styles.stepContainer}>
+        <GyroscopeGraph metaWearState={metaWearState} />
       </ThemedView>
     </ParallaxScrollView>
   );
