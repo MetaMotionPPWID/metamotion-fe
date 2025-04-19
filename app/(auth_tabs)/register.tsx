@@ -3,26 +3,40 @@ import { StyleSheet, TextInput, Button, Alert } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useRouter } from "expo-router";
+import axios from "axios";
+import { baseApiUrl } from "@/api_service/api_base";
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const router = useRouter();
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
-    // Simulate registration logic
-    if (username && email && password) {
-      Alert.alert("Registration Successful", "You can now log in.");
-      //   router.replace("login"); // Redirect to login page after successful registration
-    } else {
+    if (!username || !password) {
       Alert.alert("Error", "Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(baseApiUrl + "/auth/register", {
+        login: username,
+        password: password,
+      });
+      console.log(response);
+      if (response.status === 201) {
+        Alert.alert("Registration Successful", "You can now log in.");
+        router.replace("login");
+      }
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "An error occurred during registration.";
+      Alert.alert("Error", errorMessage);
     }
   };
 
@@ -36,13 +50,6 @@ export default function RegisterScreen() {
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
       />
       <TextInput
         style={styles.input}
