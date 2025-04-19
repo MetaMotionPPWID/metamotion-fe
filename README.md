@@ -1,3 +1,6 @@
+# To test the app with local API please 
+Go to api_service\api_base.ts and set Ipv4 address from your pc (Wireless LAN adapter Wi-Fi, IPv4 Address from ipconfig)
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
