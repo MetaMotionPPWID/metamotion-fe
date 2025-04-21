@@ -2,6 +2,8 @@ import axios from 'axios';
 
 interface Sample {
   timestamp: number;
+  label: string;
+  watchOnHand: "left" | "right";
   acceleration: number[];
   gyroscope: number[];
 }
@@ -21,6 +23,8 @@ export const fetchData = async (): Promise<MockData> => {
       samples: [
         {
           timestamp: 12341234,
+          label: "sitting",
+          watchOnHand: "left", 
           acceleration: [1.23, -12.4, 8.12],
           gyroscope: [1.23, -12.4, 8.12],
         },

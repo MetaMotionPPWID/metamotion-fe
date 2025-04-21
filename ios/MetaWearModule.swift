@@ -126,7 +126,12 @@ class MetaWearModule: RCTEventEmitter {
     }
   }
   
+  /// Sets up gyroscope and starts streaming data.
   private func setupGyroscope(board: OpaquePointer) {
+    mbl_mw_gyro_bmi160_set_odr(board, MBL_MW_GYRO_BOSCH_ODR_25Hz)
+    mbl_mw_gyro_bmi160_set_range(board, MBL_MW_GYRO_BOSCH_RANGE_500dps)
+    mbl_mw_gyro_bmi160_write_config(board)
+    
     if let signal = mbl_mw_gyro_bmi160_get_rotation_data_signal(board) {
       mbl_mw_datasignal_subscribe(signal,
                                   Unmanaged.passUnretained(self).toOpaque(),

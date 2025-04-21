@@ -9,9 +9,28 @@ import { ConnectedSensors } from "@/components/ConnectedSensors";
 import AccelerometerGraph from "@/components/AccelerometerGraph";
 import GyroscopeGraph from "@/components/GyroscopeGraph";
 import { useMetawear } from "@/hooks/useMetawear";
+import { useState } from "react";
+import DropDownPicker from "react-native-dropdown-picker";
 
 export default function SensorsScreen() {
   const metaWearState = useMetawear();
+
+  const [handOpen, setHandOpen] = useState(false);
+  const [handValue, setHandValue] = useState<"left" | "right">("left");
+  const [handItems, setHandItems] = useState([
+    { label: "Left", value: "left" },
+    { label: "Right", value: "right" },
+  ]);
+  const [actionOpen, setActionOpen] = useState(false);
+  const [actionValue, setActionValue] = useState<
+    "sitting" | "walking" | "running"
+  >("sitting");
+  const [actionItems, setActionItems] = useState([
+    { label: "Sitting", value: "sitting" },
+    { label: "Walking", value: "walking" },
+    { label: "Running", value: "running" },
+  ]);
+
 
   return (
     <ParallaxScrollView
@@ -20,13 +39,44 @@ export default function SensorsScreen() {
         <IconSymbol
           size={310}
           color="#2A2A2A"
-          name="sensor.tag.radiowaves.forward"
+          name="sensor.tag.radiowaves.forward"  
           style={styles.headerImage}
         />
       }
     >
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Sensors</ThemedText>
+      </ThemedView>
+      <ThemedView style={[styles.stepContainer, { zIndex: 10, overflow: 'visible' }]}>
+        <ThemedText type="subtitle">Watch on hand</ThemedText>
+        <DropDownPicker
+          open={handOpen}
+          value={handValue}
+          items={handItems}
+          setOpen={setHandOpen}
+          setValue={setHandValue}
+          setItems={setHandItems}
+          containerStyle={{ marginBottom: 16 }}
+          listMode="MODAL"
+          // zIndex={3000}
+          // zIndexInverse={1000}
+          // onOpen={() => setActionOpen(false)}
+        />
+
+        <ThemedText type="subtitle">Activity label</ThemedText>
+        <DropDownPicker
+          open={actionOpen}
+          value={actionValue}
+          items={actionItems}
+          setOpen={setActionOpen}
+          setValue={setActionValue}
+          setItems={setActionItems}
+          containerStyle={{ marginBottom: 16 }}
+          listMode="MODAL"
+          // zIndex={2000}
+          // zIndexInverse={2000}
+          // onOpen={() => setHandOpen(false)}
+        />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Connected sensors</ThemedText>
