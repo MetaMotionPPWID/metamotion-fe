@@ -53,6 +53,15 @@ export type UseMetaWearResult = {
 
 const MAX_DATA_POINTS = 50;
 
+export const testFullBleCycle = async (macAddress: string) => {
+  try {
+    const result = await NativeModules.MetaWearModule.testFullBleCycle(macAddress);
+    console.log("BLE TEST LOG:\n", result);
+  } catch (e) {
+    console.error("Error during BLE test:", e);
+  }
+};
+
 export const useMetawear = (): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
