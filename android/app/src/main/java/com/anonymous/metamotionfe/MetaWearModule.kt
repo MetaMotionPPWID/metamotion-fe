@@ -132,4 +132,69 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
         board?.disconnectAsync()
         reactContext.unbindService(this)
     }
+
+    @ReactMethod
+    fun testFullConnectionCycle(macAddress: String, promise: Promise) {
+        val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val btDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
+
+        val boardInstance = serviceBinder?.getMetaWearBoard(btDevice)
+        if (boardInstance == null) {
+            promise.reject("SERVICE_ERROR", "Bluetooth service not bound or board not found")
+            return
+        }
+
+        board = boardInstance
+
+        boardInstance.connectAsync().continueWithTask { connectTask ->
+            if (connectTask.isFaulted) {
+                promise.reject("CONN_ERROR", connectTask.error)
+                return@continueWithTask null
+            }
+
+            val acc = boardInstance.getModule(Accelerometer::class.java)
+            val dataReceived = mutableListOf<Acceleration>()
+
+            acc.acceleration().addRouteAsync { source ->
+                source.stream { data ->
+                    val value = data.value(Acceleration::class.java)
+                    if (value != null) {
+                        dataReceived.add(value)
+                    }
+                }
+            }.continueWithTask {
+                acc.start()
+                Thread.sleep(1000)
+                acc.stop()
+
+                if (dataReceived.isEmpty()) {
+                    promise.reject("DATA_ERROR", "No sensor data received")
+                    return@continueWithTask null
+                }
+
+                boardInstance.disconnectAsync().continueWithTask { disconnectTask ->
+                    if (disconnectTask.isFaulted) {
+                        promise.reject("DISCONN_ERROR", disconnectTask.error)
+                        return@continueWithTask null
+                    }
+
+                    boardInstance.connectAsync().continueWithTask { reconnectTask ->
+                        if (reconnectTask.isFaulted) {
+                            promise.reject("RECONN_ERROR", reconnectTask.error)
+                            return@continueWithTask null
+                        }
+
+                        boardInstance.disconnectAsync().continueWith { finalDisconnectTask ->
+                            if (finalDisconnectTask.isFaulted) {
+                                promise.reject("FINAL_DISCONN_ERROR", finalDisconnectTask.error)
+                            } else {
+                                promise.resolve("Test OK: Połączono, odebrano dane (${dataReceived.size}), rozłączono, ponownie połączono i ponownie rozłączono.")
+                            }
+                            null
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

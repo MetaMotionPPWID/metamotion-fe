@@ -1,7 +1,24 @@
-import { Image, StyleSheet } from "react-native";
+import { useState } from "react";
+import { View, Text, TextInput, Button, StyleSheet, Image } from "react-native";
+import { NativeModules } from "react-native";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 
+const { MetaWearModule } = NativeModules;
+
 export default function HomeScreen() {
+  const [mac, setMac] = useState("");
+  const [result, setResult] = useState("");
+
+  const runTest = async () => {
+    setResult("Testing...");
+    try {
+      const res = await MetaWearModule.testFullConnectionCycle(mac);
+      setResult(res);
+    } catch (err) {
+      setResult(`Error: ${err.message || err}`);
+    }
+  };
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -11,19 +28,41 @@ export default function HomeScreen() {
           style={styles.reactLogo}
         />
       }
-    ></ParallaxScrollView>
+    >
+      <View style={styles.container}>
+        <Text style={styles.label}>MAC address:</Text>
+        <TextInput
+          value={mac}
+          onChangeText={setMac}
+          placeholder="XX:XX:XX:XX:XX:XX"
+          style={styles.input}
+        />
+        <Button title="Test BLE" onPress={runTest} />
+        <Text style={styles.result}>{result}</Text>
+      </View>
+    </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
+  container: {
+    padding: 20,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  label: {
+    fontSize: 16,
+    marginBottom: 6,
+  },
+  input: {
+    borderWidth: 1,
+    padding: 10,
+    marginBottom: 10,
+    borderColor: "#ccc",
+    borderRadius: 5,
+  },
+  result: {
+    marginTop: 20,
+    fontSize: 14,
+    color: "#333",
   },
   reactLogo: {
     height: 178,
