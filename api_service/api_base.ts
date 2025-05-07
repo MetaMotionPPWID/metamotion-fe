@@ -1,1 +1,2 @@
-export const baseApiUrl = `https://app-weathered-violet-3964.fly.dev/`;
+const localIpAddress = "192.168.100.8";
+export const baseApiUrl = `http://${localIpAddress}:8000`;
