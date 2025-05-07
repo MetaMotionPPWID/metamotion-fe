@@ -1,10 +1,11 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 interface AuthContextType {
   accessToken: string | null;
-  refreshToken: string | null;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string) => void;
   clearTokens: () => void;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -13,21 +14,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [refreshToken, setRefreshToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const setTokens = (accessToken: string, refreshToken: string) => {
-    setAccessToken(accessToken);
-    setRefreshToken(refreshToken);
+  // Load the token from AsyncStorage when the app starts
+  useEffect(() => {
+    const loadToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("access_token");
+        if (storedToken) {
+          setAccessToken(storedToken);
+        }
+      } catch (error) {
+        console.error("Failed to load access token:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadToken();
+  }, []);
+
+  const setTokens = async (accessToken: string) => {
+    try {
+      await AsyncStorage.setItem("access_token", accessToken);
+      setAccessToken(accessToken);
+    } catch (error) {
+      console.error("Failed to save access token:", error);
+    }
   };
 
-  const clearTokens = () => {
-    setAccessToken(null);
-    setRefreshToken(null);
+  const clearTokens = async () => {
+    try {
+      await AsyncStorage.removeItem("access_token");
+      setAccessToken(null);
+    } catch (error) {
+      console.error("Failed to clear access token:", error);
+    }
   };
 
   return (
     <AuthContext.Provider
-      value={{ accessToken, refreshToken, setTokens, clearTokens }}
+      value={{ accessToken, setTokens, clearTokens, isLoading }}
     >
       {children}
     </AuthContext.Provider>
