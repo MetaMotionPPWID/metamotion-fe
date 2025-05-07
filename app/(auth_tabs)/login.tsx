@@ -26,8 +26,8 @@ export default function LoginScreen() {
       });
 
       if (response.status === 200) {
-        const { access_token, refresh_token } = response.data;
-        setTokens(access_token, refresh_token);
+        const { access_token } = response.data;
+        setTokens(access_token);
         Alert.alert("Login Successful", "Welcome!");
         router.replace("(tabs)");
       }

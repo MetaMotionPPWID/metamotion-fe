@@ -4,14 +4,14 @@ import {
   ThemeProvider,
 } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack, useRouter } from "expo-router";
+import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { AuthProvider } from "./authContext";
+import AuthWrapper from "./AuthWrapper";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -21,7 +21,6 @@ export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
-  const router = useRouter();
 
   useEffect(() => {
     if (loaded) {
@@ -29,15 +28,12 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      router.replace("login");
-    };
-    checkAuth();
-  }, [router]);
+  if (!loaded) {
+    return null; // Wait for fonts to load
+  }
 
   return (
-    <AuthProvider>
+    <AuthWrapper>
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -45,6 +41,6 @@ export default function RootLayout() {
         </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
-    </AuthProvider>
+    </AuthWrapper>
   );
 }
