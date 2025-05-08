@@ -13,8 +13,6 @@ import { useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";
 
 export default function SensorsScreen() {
-  const metaWearState = useMetawear();
-
   const [handOpen, setHandOpen] = useState(false);
   const [handValue, setHandValue] = useState<"left" | "right">("left");
   const [handItems, setHandItems] = useState([
@@ -31,7 +29,7 @@ export default function SensorsScreen() {
     { label: "Running", value: "running" },
   ]);
 
-
+  const metaWearState = useMetawear(actionValue, handValue);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#DDA05D", dark: "#DDA05D" }}
@@ -39,7 +37,7 @@ export default function SensorsScreen() {
         <IconSymbol
           size={310}
           color="#2A2A2A"
-          name="sensor.tag.radiowaves.forward"  
+          name="sensor.tag.radiowaves.forward"
           style={styles.headerImage}
         />
       }
@@ -47,7 +45,9 @@ export default function SensorsScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Sensors</ThemedText>
       </ThemedView>
-      <ThemedView style={[styles.stepContainer, { zIndex: 10, overflow: 'visible' }]}>
+      <ThemedView
+        style={[styles.stepContainer, { zIndex: 10, overflow: "visible" }]}
+      >
         <ThemedText type="subtitle">Watch on hand</ThemedText>
         <DropDownPicker
           open={handOpen}
