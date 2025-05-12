@@ -1,5 +1,4 @@
 import { StyleSheet } from "react-native";
-
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
@@ -20,9 +19,7 @@ export default function SensorsScreen() {
     { label: "Right", value: "right" },
   ]);
   const [actionOpen, setActionOpen] = useState(false);
-  const [actionValue, setActionValue] = useState<
-    "sitting" | "walking" | "running"
-  >("sitting");
+  const [actionValue, setActionValue] = useState< "sitting" | "walking" | "running">("sitting");
   const [actionItems, setActionItems] = useState([
     { label: "Sitting", value: "sitting" },
     { label: "Walking", value: "walking" },

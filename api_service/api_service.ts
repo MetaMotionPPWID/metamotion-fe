@@ -22,6 +22,10 @@ interface Batch {
 
 const FLUSH_INTERVAL_MS = 1 * 60 * 1000; // 1 minute
 const RETRY_QUEUE_LIMIT = 4;
+let accessToken: string | null = null;
+const sampleBuffer: Record<string, Sample[]> = {};
+const retryQueue: Batch[] = [];
+let isFlushing = false;
 
 const api = axios.create({
   baseURL: baseApiUrl,
@@ -30,11 +34,6 @@ const api = axios.create({
   },
   timeout: 10_000,
 });
-
-let accessToken: string | null = null;
-const sampleBuffer: Record<string, Sample[]> = {};
-const retryQueue: Batch[] = [];
-let isFlushing = false;
 
 export const setAuthToken = (token: string | null) => {
   accessToken = token;
@@ -60,20 +59,11 @@ export const postSamples = async (mac: string, samples: Sample[]) => {
   return data;
 };
 
-const enqueueForRetry = (batch: Batch) => {
-  if (retryQueue.length >= RETRY_QUEUE_LIMIT) {
-    retryQueue.shift();
+export const addSampleToBuffer = (mac: string, sample: Sample) => {
+  if (!sampleBuffer[mac]) {
+    sampleBuffer[mac] = [];
   }
-  retryQueue.push(batch);
-};
-
-const sendBatch = async (batch: Batch) => {
-  try {
-    await postSamples(batch.mac, batch.samples);
-  } catch (error) {
-    console.log("Batch send failed, added to retry queue", error);
-    enqueueForRetry(batch);
-  }
+  sampleBuffer[mac].push(sample);
 };
 
 export const flushBatches = async () => {
@@ -103,14 +93,21 @@ export const flushBatches = async () => {
   }
 };
 
-export const addSampleToBuffer = (mac: string, sample: Sample) => {
-  if (!sampleBuffer[mac]) {
-    sampleBuffer[mac] = [];
+const enqueueForRetry = (batch: Batch) => {
+  if (retryQueue.length >= RETRY_QUEUE_LIMIT) {
+    retryQueue.shift();
   }
-  sampleBuffer[mac].push(sample);
+  retryQueue.push(batch);
 };
 
-export const flushBatch = async (_mac?: string) => flushBatches();
+const sendBatch = async (batch: Batch) => {
+  try {
+    await postSamples(batch.mac, batch.samples);
+  } catch (error) {
+    console.log("Batch send failed, added to retry queue", error);
+    enqueueForRetry(batch);
+  }
+};
 
 flushBatches().catch(console.error);
 
@@ -118,4 +115,3 @@ setInterval(() => {
   console.log(`[api_service] scheduled flush at ${new Date().toISOString()}`);
   flushBatches().catch(console.error);
 }, FLUSH_INTERVAL_MS);
-

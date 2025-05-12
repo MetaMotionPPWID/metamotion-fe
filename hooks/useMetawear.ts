@@ -1,12 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { NativeModules, NativeEventEmitter } from "react-native";
 import { Device } from "react-native-ble-plx";
-import {
-  createSensor,
-  addSampleToBuffer,
-  flushBatch,
-  Sample,
-} from "@/api_service/api_service";
+import {createSensor, addSampleToBuffer, flushBatches, Sample} from "@/api_service/api_service";
 
 const { MetaWearModule } = NativeModules;
 const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
@@ -141,7 +136,7 @@ export const useMetawear = (
   const disconnectDevice = async (deviceId: string): Promise<void> => {
     if (deviceId) {
       try {
-        await flushBatch(deviceId);
+        await flushBatches();
         await MetaWearModule.disconnectFromDevice(deviceId);
         setConnectedDevice(null);
       } catch (error) {
