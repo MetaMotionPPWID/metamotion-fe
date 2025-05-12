@@ -77,6 +77,9 @@ const sendBatch = async (batch: Batch) => {
 };
 
 export const flushBatches = async () => {
+  console.log(
+    `[api_service] flushBatches triggered at ${new Date().toISOString()}`
+  );
   if (isFlushing) {
     return;
   }
@@ -108,4 +111,11 @@ export const addSampleToBuffer = (mac: string, sample: Sample) => {
 };
 
 export const flushBatch = async (_mac?: string) => flushBatches();
-setInterval(flushBatches, FLUSH_INTERVAL_MS);
+
+flushBatches().catch(console.error);
+
+setInterval(() => {
+  console.log(`[api_service] scheduled flush at ${new Date().toISOString()}`);
+  flushBatches().catch(console.error);
+}, FLUSH_INTERVAL_MS);
+
