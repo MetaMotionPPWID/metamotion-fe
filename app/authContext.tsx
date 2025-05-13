@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { setAuthToken } from "@/api_service/api_service";
+
 
 interface AuthContextType {
   accessToken: string | null;
@@ -23,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         const storedToken = await AsyncStorage.getItem("access_token");
         if (storedToken) {
           setAccessToken(storedToken);
+          setAuthToken(storedToken);
         }
       } catch (error) {
         console.error("Failed to load access token:", error);
@@ -38,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await AsyncStorage.setItem("access_token", accessToken);
       setAccessToken(accessToken);
+      setAuthToken(accessToken);
     } catch (error) {
       console.error("Failed to save access token:", error);
     }
@@ -47,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       await AsyncStorage.removeItem("access_token");
       setAccessToken(null);
+      setAuthToken(null);
     } catch (error) {
       console.error("Failed to clear access token:", error);
     }
@@ -68,3 +73,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
