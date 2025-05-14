@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   StyleSheet,
@@ -8,13 +8,46 @@ import {
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { UseMetaWearResult } from "@/hooks/useMetawear";
+import { getProcessedSamples } from "@/api_service/api_service";
+
+const [apiDataPoints, setApiDataPoints] = useState<
+  { x: number; y: number; z: number; timestamp: string }[]
+>([]);
+
+useEffect(() => {
+  const fetchSamples = async () => {
+    if (!mac) return;
+    try {
+      const data = await getProcessedSamples(mac);
+      setApiDataPoints(
+        data.map((s) => ({
+          x: s.acceleration[0],
+          y: s.acceleration[1],
+          z: s.acceleration[2],
+          timestamp: s.timestamp,
+        }))
+      );
+    } catch (err) {
+      console.error("Error fetching processed samples:", err);
+    }
+  };
+
+  fetchSamples();
+}, [mac]);
+
+const dataPoints =
+  mac && apiDataPoints.length > 0
+    ? apiDataPoints
+    : metaWearState?.dataPoints ?? [];
 
 const { width } = Dimensions.get("window");
 
 const AccelerometerGraph = ({
   metaWearState,
+  mac,
 }: {
   metaWearState: UseMetaWearResult;
+  mac?: string; //
 }) => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
 
