@@ -115,3 +115,8 @@ setInterval(() => {
   console.log(`[api_service] scheduled flush at ${new Date().toISOString()}`);
   flushBatches().catch(console.error);
 }, FLUSH_INTERVAL_MS);
+
+export const getProcessedSamples = async (mac: string) => {
+  const { data } = await api.get(`/sensors/${encodeURIComponent(mac)}/samples/processed`);
+  return data;
+};
