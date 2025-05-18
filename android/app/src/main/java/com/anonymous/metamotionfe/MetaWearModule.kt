@@ -64,6 +64,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             null
         }
     }
+
     @ReactMethod
     fun disconnectFromDevice(macAddress: String, promise: Promise) {
         val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -145,7 +146,6 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
         }
 
         board = boardInstance
-
         val log = StringBuilder()
 
         boardInstance.connectAsync().continueWithTask { connectTask ->
@@ -165,11 +165,17 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             }?.continueWithTask {
                 accelerometer.acceleration().start()
                 accelerometer.start()
-                Thread.sleep(1000) // Zbieramy dane przez 1s
-                accelerometer.stop()
-                accelerometer.acceleration().stop()
-                log.append("Data has been read\n")
-                boardInstance.disconnectAsync()
+
+                val scheduler = Executors.newSingleThreadScheduledExecutor()
+                Tasks.call(scheduler) {
+                    Thread.sleep(1000)
+                    null
+                }.continueWithTask {
+                    accelerometer.stop()
+                    accelerometer.acceleration().stop()
+                    log.append("Data has been read\n")
+                    boardInstance.disconnectAsync()
+                }
             }
         }.continueWithTask { disconnectTask ->
             if (disconnectTask.isFaulted) throw disconnectTask.error!!
