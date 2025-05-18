@@ -154,4 +154,61 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             }
         }
     }
+    @ReactMethod
+    fun testFullBleCycle(macAddress: String, promise: Promise) {
+        val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        val btDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
+        val boardInstance = serviceBinder?.getMetaWearBoard(btDevice)
+
+        if (boardInstance == null) {
+            promise.reject("SERVICE_ERROR", "Bluetooth service not bound or board not found")
+            return
+        }
+
+        board = boardInstance
+        val log = StringBuilder()
+
+        boardInstance.connectAsync().continueWithTask { connectTask ->
+            if (connectTask.isFaulted) throw connectTask.error!!
+
+            log.append("Connected to device\n")
+
+            val accelerometer = boardInstance.getModule(Accelerometer::class.java)
+            accelerometer?.acceleration()?.addRouteAsync { source ->
+                source.stream { data, _ ->
+                    val accel = data.value(Acceleration::class.java)
+                    if (accel != null) {
+                        val msg = "Data: x=${accel.x()}, y=${accel.y()}, z=${accel.z()}"
+                        log.append(msg).append("\n")
+                    }
+                }
+            }?.continueWithTask {
+                accelerometer.acceleration().start()
+                accelerometer.start()
+
+                val scheduler = Executors.newSingleThreadScheduledExecutor()
+                Tasks.call(scheduler) {
+                    Thread.sleep(1000)
+                    null
+                }.continueWithTask {
+                    accelerometer.stop()
+                    accelerometer.acceleration().stop()
+                    log.append("Data has been read\n")
+                    boardInstance.disconnectAsync()
+                }
+            }
+        }.continueWithTask { disconnectTask ->
+            if (disconnectTask.isFaulted) throw disconnectTask.error!!
+            log.append("Device disconnected\n")
+            boardInstance.connectAsync()
+        }.continueWith { reconnectTask ->
+            if (reconnectTask.isFaulted) {
+                promise.reject("RECONNECT_ERROR", reconnectTask.error)
+            } else {
+                log.append("Reconnected to device\n")
+                promise.resolve(log.toString())
+            }
+            null
+        }
+    }
 }
