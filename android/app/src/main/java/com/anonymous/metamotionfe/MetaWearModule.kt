@@ -21,7 +21,6 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
 
     private var serviceBinder: BtleService.LocalBinder? = null
     private var board: MetaWearBoard? = null
-    private var gyroModule: GyroBmi160? = null
     private val sensorDataBuffer = CopyOnWriteArrayList<String>()
     private val eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? =
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -90,7 +89,6 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
     private fun setupSensors() {
         board?.let { board ->
             setupAccelerometer(board)
-            setupGyroscope(board)
         }
     }
 
@@ -133,25 +131,5 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
         super.onCatalystInstanceDestroy()
         board?.disconnectAsync()
         reactContext.unbindService(this)
-    }
-
-    private fun setupGyroscope(board: MetaWearBoard) {
-        board.getModule(GyroBmi160::class.java)?.let { gyro ->
-            gyro.configure {
-                it.odr = GyroBmi160.OutputDataRate.ODR_100_HZ
-                it.range = GyroBmi160.Range.FSR_250
-            }
-            gyro.angularVelocity().addRouteAsync { source ->
-                source.stream { data, _ ->
-                    data.value(AngularVelocity::class.java)?.let { gyroData ->
-                        val dataString = "x: ${gyroData.x()}, y: ${gyroData.y()}, z: ${gyroData.z()}"
-                        eventEmitter?.emit("GYRO_DATA", dataString)
-                    }
-                }
-            }.continueWith {
-                gyro.angularVelocity().start()
-                gyro.start()
-            }
-        }
     }
 }
