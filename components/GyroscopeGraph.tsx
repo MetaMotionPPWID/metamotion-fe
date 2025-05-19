@@ -4,31 +4,6 @@ import { LineChart } from "react-native-chart-kit"
 import { UseMetaWearResult } from "@/hooks/useMetawear"
 import { getProcessedSamples } from "@/api_service/api_service";
 
-const [apiDataPoints, setApiDataPoints] = useState<
-  { x: number; y: number; z: number; timestamp: string }[]
->([]);
-
-useEffect(() => {
-  const fetchSamples = async () => {
-    if (!mac) return;
-    try {
-      const data = await getProcessedSamples(mac);
-      setApiDataPoints(
-        data.map((s) => ({
-          x: s.gyroscope[0],
-          y: s.gyroscope[1],
-          z: s.gyroscope[2],
-          timestamp: s.timestamp,
-        }))
-      );
-    } catch (err) {
-      console.error("Error fetching gyroscope samples:", err);
-    }
-  };
-
-  fetchSamples();
-}, [mac]);
-
 const { width } = Dimensions.get("window")
 
 const GyroscopeGraph = ({
@@ -38,15 +13,44 @@ const GyroscopeGraph = ({
   metaWearState: UseMetaWearResult;
   mac?: string;
 }) => {
-  const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true })
+  const [apiDataPoints, setApiDataPoints] = useState<
+    { x: number; y: number; z: number; timestamp: string }[]
+  >([]);
+
+  useEffect(() => {
+    const fetchSamples = async () => {
+      if (!mac) return;
+      try {
+        const data = await getProcessedSamples(mac);
+        setApiDataPoints(
+          data.map((s) => ({
+            x: s.gyroscope[0],
+            y: s.gyroscope[1],
+            z: s.gyroscope[2],
+            timestamp: s.timestamp,
+          }))
+        );
+      } catch (err) {
+        console.error("Error fetching gyroscope samples:", err);
+      }
+    };
+
+    fetchSamples();
+  }, [mac]);
+
+  const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
+
   const dataPoints =
     mac && apiDataPoints.length > 0
       ? apiDataPoints
       : metaWearState?.gyroDataPoints ?? [];
 
   const toggleAxis = useCallback((axis: "x" | "y" | "z") => {
-    setVisibleAxes(prev => ({ ...prev, [axis]: !prev[axis] }))
-  }, [])
+    setVisibleAxes((prev) => ({
+      ...prev,
+      [axis]: !prev[axis],
+    }));
+  }, []);
 
   const chartData = {
     labels:
