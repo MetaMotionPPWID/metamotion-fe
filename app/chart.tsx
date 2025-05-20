@@ -18,6 +18,10 @@ export default function Chart() {
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(false);
   const [filterQuery, setFilterQuery] = useState<string>("");
+
+  const [startTime, setStartTime] = useState<string | null>(null);
+  const [endTime, setEndTime] = useState<string | null>(null);
+
   const [error, setError] = useState<string | null>(null);
   const [dataError, setDataError] = useState<string | null>(null);
 
@@ -50,51 +54,46 @@ export default function Chart() {
     setDataError(null);
   }, [selectedMac]);
 
-// automatic download
-//   useEffect(() => {
-//     if (!selectedMac) return;
-//     loadSensorData(selectedMac);
-//   }, [selectedMac]);
-
   const loadSensorData = async (mac: string) => {
     setLoading(true);
     setDataError(null);
+    setSamples([]);
+    setPredictions([]);
+
     try {
       const fetchedSamples = await getSamples(mac);
       setSamples(fetchedSamples);
 
-      if (fetchedSamples.length >= 2) {
-        const start = fetchedSamples[0].timestamp;
-        const end = fetchedSamples[fetchedSamples.length - 1].timestamp;
-        try {
-          const preds = await getPredictions(mac, start, end);
-          setPredictions(preds);
-        } catch (predErr) {
-          console.error("Prediction error:", predErr);
-          setPredictions([]);
-          setDataError("Failed to retrieve prediction.");
-        }
-      } else {
+      if (!startTime || !endTime) {
+        setDataError("Please provide both start and end time (ISO format).");
+        return;
+      }
+
+      try {
+        const preds = await getPredictions(mac, startTime, endTime);
+        setPredictions(preds);
+      } catch (predErr) {
+        console.error("Prediction error:", predErr);
         setPredictions([]);
-        setDataError("Too few samples to make predictions.");
+        setDataError("Failed to retrieve prediction.");
       }
     } catch (err) {
-        console.error("Sample error (refresh):", err);
-        setSamples([]);
-        setPredictions([]);
+      console.error("Sample error (refresh):", err);
+      setSamples([]);
+      setPredictions([]);
 
-        if (err?.message === "Network Error") {
-          setDataError("No internet connection.");
-        } else if (err?.code === "ECONNABORTED") {
-          setDataError("Server response timed out.");
-        } else if (err?.response?.status === 403) {
-          setDataError("No authorization. Please log in again.");
-        } else if (err?.response?.status === 500) {
-          setDataError("Server error. Please try again later.");
-        } else {
-          setDataError("Failed to download data for the selected device.");
-        }
-      } finally {
+      if (err?.message === "Network Error") {
+        setDataError("No internet connection.");
+      } else if (err?.code === "ECONNABORTED") {
+        setDataError("Server response timed out.");
+      } else if (err?.response?.status === 403) {
+        setDataError("No authorization. Please log in again.");
+      } else if (err?.response?.status === 500) {
+        setDataError("Server error. Please try again later.");
+      } else {
+        setDataError("Failed to download data for the selected device.");
+      }
+    } finally {
       setLoading(false);
     }
   };
@@ -179,6 +178,32 @@ export default function Chart() {
               ))}
             </Picker>
           )}
+
+          <TextInput
+            placeholder="Start time (ISO) e.g. 2025-05-20T00:00:00Z"
+            value={startTime ?? ""}
+            onChangeText={setStartTime}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              padding: 8,
+              borderRadius: 4,
+              marginBottom: 8,
+            }}
+          />
+
+          <TextInput
+            placeholder="End time (ISO) e.g. 2025-05-20T00:05:00Z"
+            value={endTime ?? ""}
+            onChangeText={setEndTime}
+            style={{
+              borderWidth: 1,
+              borderColor: "#ccc",
+              padding: 8,
+              borderRadius: 4,
+              marginBottom: 8,
+            }}
+          />
 
           {selectedMac && (
             <View style={{ marginBottom: 16 }}>
