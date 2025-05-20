@@ -7,15 +7,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { BleManager, Device } from "react-native-ble-plx";
-import { ThemedText } from "@/components/ThemedText";
+import { ThemedText } from "@/components/ui/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { UseMetaWearResult } from "@/hooks/useMetawear";
 
-export const BluetoothScanner = ({
-  metaWearState,
-}: {
+type Props = {
   metaWearState: UseMetaWearResult;
-}) => {
+};
+
+export const BluetoothScanner = ({ metaWearState }: Props) => {
   const [sensors, setSensors] = useState<Device[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();

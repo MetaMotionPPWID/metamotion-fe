@@ -1,12 +1,16 @@
 import { StyleSheet } from "react-native";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { BluetoothScanner } from "@/components/BluetoothScanner";
-import { ConnectedSensors } from "@/components/ConnectedSensors";
-import AccelerometerGraph from "@/components/AccelerometerGraph";
-import GyroscopeGraph from "@/components/GyroscopeGraph";
+import {
+  ParallaxScrollView,
+  ThemedText,
+  ThemedView,
+  IconSymbol,
+} from "@/components/ui";
+import {
+  AccelerometerGraph,
+  GyroscopeGraph,
+  BluetoothScanner,
+  ConnectedSensors,
+} from "@/components/sensors";
 import { useMetawear } from "@/hooks/useMetawear";
 import { useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";

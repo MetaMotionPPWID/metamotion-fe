@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, TextInput, Button, Alert } from "react-native";
-import { ThemedView } from "@/components/ThemedView";
-import { ThemedText } from "@/components/ThemedText";
+import { ThemedView, ThemedText } from "@/components/ui";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/hooks";
 import { postLogin } from "@/api/auth";

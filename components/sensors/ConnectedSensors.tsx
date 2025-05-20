@@ -7,15 +7,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Device } from "react-native-ble-plx";
-import { ThemedText } from "@/components/ThemedText";
+import { ThemedText } from "@/components/ui/ThemedText";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { UseMetaWearResult } from "@/hooks/useMetawear";
 
-export const ConnectedSensors = ({
-  metaWearState,
-}: {
+type Props = {
   metaWearState: UseMetaWearResult;
-}) => {
+};
+
+export const ConnectedSensors = ({ metaWearState }: Props) => {
   const [selectedDevice, setSelectedDevice] = useState<Partial<Device>>();
 
   const connectedDevice = metaWearState.connectedDevice;

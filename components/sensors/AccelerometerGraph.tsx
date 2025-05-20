@@ -11,11 +11,11 @@ import { UseMetaWearResult } from "@/hooks/useMetawear";
 
 const { width } = Dimensions.get("window");
 
-const AccelerometerGraph = ({
-  metaWearState,
-}: {
+type Props = {
   metaWearState: UseMetaWearResult;
-}) => {
+};
+
+export const AccelerometerGraph = ({ metaWearState }: Props) => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
 
   const dataPoints = metaWearState.dataPoints;
@@ -282,5 +282,3 @@ const styles = StyleSheet.create({
     color: "blue",
   },
 });
-
-export default AccelerometerGraph;
