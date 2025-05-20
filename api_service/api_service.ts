@@ -109,6 +109,36 @@ const sendBatch = async (batch: Batch) => {
   }
 };
 
+export const fetchData = async (): Promise<Sensor[]> => {
+  const { data } = await api.get<{ sensors: Sensor[] }>("/sensors/");
+  return data.sensors;
+};
+
+export const getSamples = async (mac: string): Promise<Sample[]> => {
+  const { data } = await api.get<{ samples: Sample[] }>(`/sensors/${encodeURIComponent(mac)}/samples`);
+  return data.samples;
+};
+
+export interface Prediction {
+  timestamp: string;
+  predicted_activity: string;
+}
+
+export const getPredictions = async (
+  mac: string,
+  startTime: string,
+  endTime: string
+): Promise<Prediction[]> => {
+  const { data } = await api.post<{ predictions: Prediction[] }>(
+    `/sensors/${encodeURIComponent(mac)}/samples/prediction`,
+    {
+      start_time: startTime,
+      end_time: endTime,
+    }
+  );
+  return data.predictions;
+};
+
 flushBatches().catch(console.error);
 
 setInterval(() => {
