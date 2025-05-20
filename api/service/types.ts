@@ -21,3 +21,7 @@ export type Prediction = {
   timestamp: string;
   predicted_activity: string;
 };
+
+export type SensorWithPredictions = Sensor & {
+  predictions: Prediction[];
+};

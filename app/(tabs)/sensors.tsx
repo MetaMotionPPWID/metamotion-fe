@@ -19,7 +19,9 @@ export default function SensorsScreen() {
     { label: "Right", value: "right" },
   ]);
   const [actionOpen, setActionOpen] = useState(false);
-  const [actionValue, setActionValue] = useState< "sitting" | "walking" | "running">("sitting");
+  const [actionValue, setActionValue] = useState<
+    "sitting" | "walking" | "running"
+  >("sitting");
   const [actionItems, setActionItems] = useState([
     { label: "Sitting", value: "sitting" },
     { label: "Walking", value: "walking" },
@@ -27,6 +29,7 @@ export default function SensorsScreen() {
   ]);
 
   const metaWearState = useMetawear(actionValue, handValue);
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#DDA05D", dark: "#DDA05D" }}
@@ -55,9 +58,6 @@ export default function SensorsScreen() {
           setItems={setHandItems}
           containerStyle={{ marginBottom: 16 }}
           listMode="MODAL"
-          // zIndex={3000}
-          // zIndexInverse={1000}
-          // onOpen={() => setActionOpen(false)}
         />
 
         <ThemedText type="subtitle">Activity label</ThemedText>
@@ -70,9 +70,6 @@ export default function SensorsScreen() {
           setItems={setActionItems}
           containerStyle={{ marginBottom: 16 }}
           listMode="MODAL"
-          // zIndex={2000}
-          // zIndexInverse={2000}
-          // onOpen={() => setHandOpen(false)}
         />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
