@@ -1,4 +1,10 @@
-import { fetchData, getSamples, getPredictions, Sample, Prediction } from "@/api_service/api_service";
+import {
+  getSensors,
+  getSamples,
+  getPredictions,
+  Sample,
+  Prediction,
+} from "../api";
 import { useEffect, useState } from "react";
 import {
   ScrollView,
@@ -26,7 +32,7 @@ export default function Chart() {
   const [dataError, setDataError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchData()
+    getSensors()
       .then((data) => {
         const devices = data.map(({ mac, name }) => ({ mac, name }));
         setSensors(devices);
@@ -117,7 +123,7 @@ export default function Chart() {
     .filter(
       (sensor) =>
         sensor.mac.toLowerCase().includes(filterQuery.toLowerCase()) ||
-        sensor.name.toLowerCase().includes(filterQuery.toLowerCase())
+        sensor.name.toLowerCase().includes(filterQuery.toLowerCase()),
     )
     .sort((a, b) => {
       const nameCompare = a.name.localeCompare(b.name);

@@ -1,7 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import { NativeModules, NativeEventEmitter } from "react-native";
 import { Device } from "react-native-ble-plx";
-import {createSensor, addSampleToBuffer, flushBatches, Sample} from "@/api_service/api_service";
+import {
+  addSampleToBuffer,
+  flushBatches,
+  postSensor,
+  Sample,
+} from "@/api/service";
 
 const { MetaWearModule } = NativeModules;
 const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
@@ -61,7 +66,7 @@ const MAX_DATA_POINTS = 50;
 
 export const useMetawear = (
   currentLabel: string,
-  currentHand: "left" | "right"
+  currentHand: "left" | "right",
 ): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
@@ -92,7 +97,7 @@ export const useMetawear = (
           }
           return newData;
         });
-      }
+      },
     );
     const gyroSub = sensorEventEmitter.addListener(
       "GYRO_DATA",
@@ -107,7 +112,7 @@ export const useMetawear = (
             ? buf.slice(buf.length - MAX_DATA_POINTS)
             : buf;
         });
-      }
+      },
     );
     return () => {
       subscription.remove();
@@ -122,7 +127,7 @@ export const useMetawear = (
       try {
         await MetaWearModule.connectToDevice(device.id);
         setConnectedDevice(device);
-        await createSensor({
+        await postSensor({
           mac: device.id,
           name: device.name ?? "Unknown",
           samples: [],
@@ -158,7 +163,7 @@ export const useMetawear = (
   const addCombinedSample = (
     mac: string,
     kind: "accel" | "gyro",
-    dp: { x: number; y: number; z: number; timestamp: number }
+    dp: { x: number; y: number; z: number; timestamp: number },
   ) => {
     const bucketTs = Math.round(dp.timestamp / MERGE_WINDOW_MS);
 

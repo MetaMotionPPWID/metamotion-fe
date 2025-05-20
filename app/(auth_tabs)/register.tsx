@@ -3,14 +3,14 @@ import { StyleSheet, TextInput, Button, Alert } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useRouter } from "expo-router";
-import axios from "axios";
-import { baseApiUrl } from "@/api_service/api_base";
+import { postRegister } from "@/api/auth";
 
 export default function RegisterScreen() {
+  const router = useRouter();
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const router = useRouter();
 
   const handleRegister = async () => {
     if (password !== confirmPassword) {
@@ -24,15 +24,10 @@ export default function RegisterScreen() {
     }
 
     try {
-      const response = await axios.post(baseApiUrl + "/auth/register", {
-        login: username,
-        password: password,
-      });
-      console.log(response);
-      if (response.status === 201) {
-        Alert.alert("Registration Successful", "You can now log in.");
-        router.replace("login");
-      }
+      await postRegister(username, password);
+
+      Alert.alert("Registration Successful", "You can now log in.");
+      router.replace("login");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || "An error occurred during registration.";

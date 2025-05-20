@@ -6,7 +6,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import Chart from "../chart";
-import { useAuth } from "../authContext";
+import { useAuth } from "@/hooks";
 export default function AnalyticsScreen() {
   const { accessToken, refreshToken } = useAuth();
 

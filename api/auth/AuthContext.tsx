@@ -1,24 +1,26 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import { useState, useEffect, ReactNode, createContext } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { setAuthToken } from "@/api_service/api_service";
+import { setAuthToken } from "./auth";
 
+type Props = {
+  children: ReactNode;
+};
 
-interface AuthContextType {
+export type AuthContextType = {
   accessToken: string | null;
   setTokens: (accessToken: string) => void;
   clearTokens: () => void;
   isLoading: boolean;
-}
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+export const AuthProvider = ({ children }: Props) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load the token from AsyncStorage when the app starts
   useEffect(() => {
     const loadToken = async () => {
       try {
@@ -34,7 +36,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    loadToken();
+    void loadToken();
   }, []);
 
   const setTokens = async (accessToken: string) => {
@@ -65,12 +67,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-

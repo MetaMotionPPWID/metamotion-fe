@@ -3,15 +3,15 @@ import { StyleSheet, TextInput, Button, Alert } from "react-native";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useRouter } from "expo-router";
-import axios from "axios";
-import { baseApiUrl } from "@/api_service/api_base";
-import { useAuth } from "../authContext";
+import { useAuth } from "@/hooks";
+import { postLogin } from "@/api/auth";
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
   const { setTokens } = useAuth();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
     if (!username || !password) {
@@ -20,17 +20,11 @@ export default function LoginScreen() {
     }
 
     try {
-      const response = await axios.post(baseApiUrl + "/auth/login", {
-        login: username,
-        password: password,
-      });
+      const accessToken = await postLogin(username, password);
+      setTokens(accessToken);
 
-      if (response.status === 200) {
-        const { access_token } = response.data;
-        setTokens(access_token);
-        Alert.alert("Login Successful", "Welcome!");
-        router.replace("(tabs)");
-      }
+      Alert.alert("Login Successful", "Welcome!");
+      router.replace("(tabs)");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || "An error occurred during login.";
