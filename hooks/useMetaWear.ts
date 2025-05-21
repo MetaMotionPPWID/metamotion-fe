@@ -7,70 +7,29 @@ import {
   postSensor,
   Sample,
 } from "@/api/service";
+import {
+  DataPoint,
+  parseAcceleratorData,
+  parseGyroscopeData,
+  PartialSample,
+  UseMetaWearResult,
+} from "@/hooks/utils";
 
 const { MetaWearModule } = NativeModules;
 const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
 
-const parseAcceleratorData = (dataString: string) => {
-  try {
-    // Match patterns like "x: -0.060791016, y: 6.1035156E-4, z: -0.98516846"
-    const xMatch = dataString.match(/x:\s*([-\d.E-]+)/);
-    const yMatch = dataString.match(/y:\s*([-\d.E-]+)/);
-    const zMatch = dataString.match(/z:\s*([-\d.E-]+)/);
-
-    return {
-      x: xMatch ? parseFloat(xMatch[1]) : 0,
-      y: yMatch ? parseFloat(yMatch[1]) : 0,
-      z: zMatch ? parseFloat(zMatch[1]) : 0,
-      timestamp: Date.now(),
-    };
-  } catch (error) {
-    console.error("Error parsing accelerometer data:", error);
-    return { x: 0, y: 0, z: 0, timestamp: Date.now() };
-  }
-};
-
-const parseGyroscopeData = (dataString: string): DataPoint => {
-  try {
-    const xMatch = dataString.match(/x:\s*([-\d.E-]+)/);
-    const yMatch = dataString.match(/y:\s*([-\d.E-]+)/);
-    const zMatch = dataString.match(/z:\s*([-\d.E-]+)/);
-    return {
-      x: xMatch ? parseFloat(xMatch[1]) : 0,
-      y: yMatch ? parseFloat(yMatch[1]) : 0,
-      z: zMatch ? parseFloat(zMatch[1]) : 0,
-      timestamp: Date.now(),
-    };
-  } catch (error) {
-    console.error("Error parsing gyroscope data:", error);
-    return { x: 0, y: 0, z: 0, timestamp: Date.now() };
-  }
-};
-
-type DataPoint = {
-  x: number;
-  y: number;
-  z: number;
-  timestamp: number;
-};
-
-export type UseMetaWearResult = {
-  connectedDevice: Device | null;
-  connectToDevice: (device: Device) => Promise<void>;
-  disconnectDevice: (deviceId: string) => Promise<void>;
-  dataPoints: DataPoint[];
-  gyroDataPoints: DataPoint[];
-};
-
 const MAX_DATA_POINTS = 50;
+const MERGE_WINDOW_MS = 20;
+const FLUSH_TIMEOUT_MS = 200;
 
-export const useMetawear = (
+export const useMetaWear = (
   currentLabel: string,
   currentHand: "left" | "right",
 ): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
-  const [dataPoints, setDataPoints] = useState<DataPoint[]>([]);
-  const [gyroDataPoints, setGyroDataPoints] = useState<DataPoint[]>([]);
+  const [accelerometerData, setAccelerometerData] = useState<DataPoint[]>([]);
+  const [gyroscopeData, setGyroscopeData] = useState<DataPoint[]>([]);
+
   const labelRef = useRef(currentLabel);
   const handRef = useRef(currentHand);
 
@@ -90,7 +49,7 @@ export const useMetawear = (
         if (connectedDevice?.id) {
           addCombinedSample(connectedDevice.id, "accel", parsedData);
         }
-        setDataPoints((prevData) => {
+        setAccelerometerData((prevData) => {
           const newData = [...prevData, parsedData];
           if (newData.length > MAX_DATA_POINTS) {
             return newData.slice(newData.length - MAX_DATA_POINTS);
@@ -106,7 +65,7 @@ export const useMetawear = (
         if (connectedDevice?.id) {
           addCombinedSample(connectedDevice.id, "gyro", parsed);
         }
-        setGyroDataPoints((prev) => {
+        setGyroscopeData((prev) => {
           const buf = [...prev, parsed];
           return buf.length > MAX_DATA_POINTS
             ? buf.slice(buf.length - MAX_DATA_POINTS)
@@ -148,15 +107,6 @@ export const useMetawear = (
         console.error("Disconnection error:", error);
       }
     }
-  };
-
-  const MERGE_WINDOW_MS = 20;
-  const FLUSH_TIMEOUT_MS = 200;
-
-  type PartialSample = {
-    timestamp: string;
-    acceleration?: number[];
-    gyroscope?: number[];
   };
 
   const pendingSamples: Record<string, Record<number, PartialSample>> = {};
@@ -209,7 +159,7 @@ export const useMetawear = (
     connectedDevice,
     connectToDevice,
     disconnectDevice,
-    dataPoints,
-    gyroDataPoints,
+    accelerometerData,
+    gyroscopeData,
   };
 };

@@ -7,7 +7,7 @@ import {
   Text,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
-import { UseMetaWearResult } from "@/hooks/useMetawear";
+import { UseMetaWearResult } from "@/hooks/utils";
 
 const { width } = Dimensions.get("window");
 
@@ -17,7 +17,8 @@ type Props = {
 
 export const GyroscopeGraph = ({ metaWearState }: Props) => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
-  const dataPoints = metaWearState.gyroDataPoints;
+
+  const dataPoints = metaWearState.gyroscopeData;
 
   const toggleAxis = useCallback((axis: "x" | "y" | "z") => {
     setVisibleAxes((prev) => ({ ...prev, [axis]: !prev[axis] }));

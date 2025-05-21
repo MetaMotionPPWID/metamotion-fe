@@ -11,7 +11,7 @@ import {
   BluetoothScanner,
   ConnectedSensors,
 } from "@/components/sensors";
-import { useMetawear } from "@/hooks/useMetawear";
+import { useMetaWear } from "@/hooks";
 import { useState } from "react";
 import DropDownPicker from "react-native-dropdown-picker";
 
@@ -32,7 +32,7 @@ export default function SensorsScreen() {
     { label: "Running", value: "running" },
   ]);
 
-  const metaWearState = useMetawear(actionValue, handValue);
+  const metaWearState = useMetaWear(actionValue, handValue);
 
   return (
     <ParallaxScrollView
