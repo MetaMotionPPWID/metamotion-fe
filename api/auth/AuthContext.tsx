@@ -14,9 +14,12 @@ export type AuthContextType = {
   isLoading: boolean;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+export const AuthContext = createContext<AuthContextType | undefined>({
+  accessToken: null,
+  setTokens: () => {},
+  clearTokens: () => {},
+  isLoading: true,
+} as AuthContextType);
 
 export const AuthProvider = ({ children }: Props) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);

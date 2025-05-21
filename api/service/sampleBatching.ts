@@ -1,5 +1,6 @@
-import { postSampleBatch } from "./apiService";
 import type { Batch, Sample } from "./types";
+
+import { api } from "@/api/apiInstance";
 
 const FLUSH_INTERVAL_MS = 60 * 1000; // 1 minute
 const RETRY_QUEUE_LIMIT = 4;
@@ -21,6 +22,25 @@ export const enqueueForRetry = (batch: Batch) => {
     retryQueue.shift();
   }
   retryQueue.push(batch);
+};
+
+const postSamples = async (mac: string, samples: Sample[]) => {
+  const { data } = await api.post(
+    `/sensors/${encodeURIComponent(mac)}/samples`,
+    {
+      samples,
+    },
+  );
+  return data;
+};
+
+export const postSampleBatch = async (batch: Batch) => {
+  try {
+    await postSamples(batch.mac, batch.samples);
+  } catch (error) {
+    console.log("Batch send failed, added to retry queue", error);
+    enqueueForRetry(batch);
+  }
 };
 
 export const flushBatches = async () => {

@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 
 import { AuthProvider } from "@/api/auth";
 import { useAuth } from "@/hooks";
@@ -8,25 +8,27 @@ type Props = {
   children: ReactNode;
 };
 
-export const AuthWrapper = ({ children }: Props) => {
-  const { accessToken, isLoading } = useAuth();
+const AuthGate = ({ children }: Props) => {
   const router = useRouter();
-
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
+  const { accessToken, isLoading } = useAuth();
 
   useEffect(() => {
-    if (isMounted && !isLoading && !accessToken) {
-      router.replace("login");
+    if (!isLoading && !accessToken) {
+      router.replace("/login");
     }
-  }, [isMounted, isLoading, accessToken, router]);
+  }, [accessToken, isLoading, router]);
 
-  if (!isMounted || isLoading) {
+  if (isLoading) {
     return null;
   }
 
-  return <AuthProvider>{children}</AuthProvider>;
+  return <>{children}</>;
+};
+
+export const AuthWrapper = ({ children }: Props) => {
+  return (
+    <AuthProvider>
+      <AuthGate>{children}</AuthGate>
+    </AuthProvider>
+  );
 };

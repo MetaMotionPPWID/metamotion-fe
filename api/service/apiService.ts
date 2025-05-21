@@ -1,29 +1,9 @@
 import { api } from "../apiInstance";
-import { enqueueForRetry } from "./sampleBatching";
-import type { Batch, Prediction, Sample, Sensor } from "./types";
+import type { Prediction, Sample, Sensor } from "./types";
 
 export const postSensor = async (sensor: Sensor) => {
   const { data } = await api.post("/sensors/", sensor);
   return data;
-};
-
-const postSamples = async (mac: string, samples: Sample[]) => {
-  const { data } = await api.post(
-    `/sensors/${encodeURIComponent(mac)}/samples`,
-    {
-      samples,
-    },
-  );
-  return data;
-};
-
-export const postSampleBatch = async (batch: Batch) => {
-  try {
-    await postSamples(batch.mac, batch.samples);
-  } catch (error) {
-    console.log("Batch send failed, added to retry queue", error);
-    enqueueForRetry(batch);
-  }
 };
 
 export const getSensors = async (): Promise<Sensor[]> => {
