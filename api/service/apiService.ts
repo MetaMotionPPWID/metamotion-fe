@@ -1,6 +1,6 @@
 import { api } from "../apiInstance";
-import type { Sample, Sensor, Prediction, Batch } from "./types";
 import { enqueueForRetry } from "./sampleBatching";
+import type { Batch, Prediction, Sample, Sensor } from "./types";
 
 export const postSensor = async (sensor: Sensor) => {
   const { data } = await api.post("/sensors/", sensor);

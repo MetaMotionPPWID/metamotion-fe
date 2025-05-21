@@ -1,3 +1,4 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
@@ -6,7 +7,6 @@ import { HapticTab, IconSymbol } from "@/components/ui";
 import TabBarBackground from "@/components/ui/TabBarBackground";
 import { Colors } from "@/constants";
 import { useColorScheme } from "@/hooks";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();

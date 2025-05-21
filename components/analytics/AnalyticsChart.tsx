@@ -1,18 +1,19 @@
+import { Picker } from "@react-native-picker/picker";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ScrollView,
-  Text,
-  View,
   ActivityIndicator,
-  TextInput,
   Button,
+  ScrollView,
   StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
-import { Picker } from "@react-native-picker/picker";
+
 import {
+  SensorWithPredictions,
   getPredictions,
   getSensors,
-  SensorWithPredictions,
 } from "@/api/service";
 
 const activityColor = (label: string): string => {

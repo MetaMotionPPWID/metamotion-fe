@@ -1,7 +1,8 @@
-import { ReactNode, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { useAuth } from "@/hooks";
+import { ReactNode, useEffect, useState } from "react";
+
 import { AuthProvider } from "@/api/auth";
+import { useAuth } from "@/hooks";
 
 type Props = {
   children: ReactNode;

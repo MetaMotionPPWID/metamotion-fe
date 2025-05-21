@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import {
-  StyleSheet,
+  ActivityIndicator,
   FlatList,
+  StyleSheet,
   TouchableOpacity,
   View,
-  ActivityIndicator,
 } from "react-native";
 import { Device } from "react-native-ble-plx";
-import { ThemedText } from "@/components/ui/ThemedText";
+
 import { IconSymbol } from "@/components/ui/IconSymbol";
+import { ThemedText } from "@/components/ui/ThemedText";
 import { UseMetaWearResult } from "@/hooks/utils";
 
 type Props = {

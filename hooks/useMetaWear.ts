@@ -1,18 +1,19 @@
-import { useEffect, useState, useRef } from "react";
-import { NativeModules, NativeEventEmitter } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { NativeEventEmitter, NativeModules } from "react-native";
 import { Device } from "react-native-ble-plx";
+
 import {
+  Sample,
   addSampleToBuffer,
   flushBatches,
   postSensor,
-  Sample,
 } from "@/api/service";
 import {
   DataPoint,
-  parseAcceleratorData,
-  parseGyroscopeData,
   PartialSample,
   UseMetaWearResult,
+  parseAcceleratorData,
+  parseGyroscopeData,
 } from "@/hooks/utils";
 
 const { MetaWearModule } = NativeModules;

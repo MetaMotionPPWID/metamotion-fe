@@ -1,5 +1,5 @@
-import type { Batch, Sample } from "./types";
 import { postSampleBatch } from "./apiService";
+import type { Batch, Sample } from "./types";
 
 const FLUSH_INTERVAL_MS = 60 * 1000; // 1 minute
 const RETRY_QUEUE_LIMIT = 4;

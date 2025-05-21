@@ -1,12 +1,13 @@
-import React, { useState, useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
-  View,
-  StyleSheet,
   Dimensions,
-  TouchableOpacity,
+  StyleSheet,
   Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
+
 import { UseMetaWearResult } from "@/hooks/utils";
 
 const { width } = Dimensions.get("window");

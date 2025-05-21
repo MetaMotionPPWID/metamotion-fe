@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { StyleSheet, TextInput, Button, Alert } from "react-native";
-import { ThemedView, ThemedText } from "@/components/ui";
 import { useRouter } from "expo-router";
+import React, { useState } from "react";
+import { Alert, Button, StyleSheet, TextInput } from "react-native";
+
 import { postRegister } from "@/api/auth";
+import { ThemedText, ThemedView } from "@/components/ui";
 
 export default function RegisterScreen() {
   const router = useRouter();

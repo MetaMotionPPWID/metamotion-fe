@@ -1,9 +1,10 @@
-import React, { useState } from "react";
-import { StyleSheet, TextInput, Button, Alert } from "react-native";
-import { ThemedView, ThemedText } from "@/components/ui";
 import { useRouter } from "expo-router";
-import { useAuth } from "@/hooks";
+import React, { useState } from "react";
+import { Alert, Button, StyleSheet, TextInput } from "react-native";
+
 import { postLogin } from "@/api/auth";
+import { ThemedText, ThemedView } from "@/components/ui";
+import { useAuth } from "@/hooks";
 
 export default function LoginScreen() {
   const router = useRouter();
