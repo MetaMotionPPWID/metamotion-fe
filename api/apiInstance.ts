@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const baseApiUrl = "http://192.168.8.147:8000";
+export const baseApiUrl = "https://big-szyc.fly.dev";
 
 export const api = axios.create({
   baseURL: baseApiUrl,
