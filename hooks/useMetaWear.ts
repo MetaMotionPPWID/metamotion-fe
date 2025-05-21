@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { NativeEventEmitter, NativeModules } from "react-native";
 import { Device } from "react-native-ble-plx";
 
@@ -25,22 +25,11 @@ const FLUSH_TIMEOUT_MS = 200;
 
 export const useMetaWear = (
   currentLabel: string,
-  currentHand: "left" | "right",
+  currentHand: string,
 ): UseMetaWearResult => {
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
   const [accelerometerData, setAccelerometerData] = useState<DataPoint[]>([]);
   const [gyroscopeData, setGyroscopeData] = useState<DataPoint[]>([]);
-
-  const labelRef = useRef(currentLabel);
-  const handRef = useRef(currentHand);
-
-  useEffect(() => {
-    labelRef.current = currentLabel;
-  }, [currentLabel]);
-
-  useEffect(() => {
-    handRef.current = currentHand;
-  }, [currentHand]);
 
   useEffect(() => {
     const subscription = sensorEventEmitter.addListener(
@@ -131,8 +120,8 @@ export const useMetaWear = (
     if (entry.acceleration && entry.gyroscope) {
       const completeSample: Sample = {
         timestamp: entry.timestamp,
-        label: labelRef.current,
-        watch_on_hand: handRef.current,
+        label: currentLabel,
+        watch_on_hand: currentHand,
         acceleration: entry.acceleration,
         gyroscope: entry.gyroscope,
       };
@@ -144,8 +133,8 @@ export const useMetaWear = (
         if (left) {
           const partialSample: Sample = {
             timestamp: left.timestamp,
-            label: labelRef.current,
-            watch_on_hand: handRef.current,
+            label: currentLabel,
+            watch_on_hand: currentHand,
             acceleration: left.acceleration ?? [],
             gyroscope: left.gyroscope ?? [],
           };

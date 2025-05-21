@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { StyleSheet } from "react-native";
-import DropDownPicker from "react-native-dropdown-picker";
 
 import {
   AccelerometerGraph,
@@ -11,29 +10,17 @@ import {
 import {
   IconSymbol,
   ParallaxScrollView,
+  ThemedPicker,
   ThemedText,
   ThemedView,
 } from "@/components/ui";
 import { useMetaWear } from "@/hooks";
 
 export default function SensorsScreen() {
-  const [handOpen, setHandOpen] = useState(false);
-  const [handValue, setHandValue] = useState<"left" | "right">("left");
-  const [handItems, setHandItems] = useState([
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
-  ]);
-  const [actionOpen, setActionOpen] = useState(false);
-  const [actionValue, setActionValue] = useState<
-    "sitting" | "walking" | "running"
-  >("sitting");
-  const [actionItems, setActionItems] = useState([
-    { label: "Sitting", value: "sitting" },
-    { label: "Walking", value: "walking" },
-    { label: "Running", value: "running" },
-  ]);
+  const [currentHand, setCurrentHand] = useState("left");
+  const [currentLabel, setCurrentLabel] = useState("sitting");
 
-  const metaWearState = useMetaWear(actionValue, handValue);
+  const metaWearState = useMetaWear(currentLabel, currentHand);
 
   return (
     <ParallaxScrollView
@@ -50,31 +37,25 @@ export default function SensorsScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Sensors</ThemedText>
       </ThemedView>
-      <ThemedView
-        style={[styles.stepContainer, { zIndex: 10, overflow: "visible" }]}
-      >
-        <ThemedText type="subtitle">Watch on hand</ThemedText>
-        <DropDownPicker
-          open={handOpen}
-          value={handValue}
-          items={handItems}
-          setOpen={setHandOpen}
-          setValue={setHandValue}
-          setItems={setHandItems}
-          containerStyle={{ marginBottom: 16 }}
-          listMode="MODAL"
+      <ThemedView style={{ zIndex: 10, overflow: "visible" }}>
+        <ThemedPicker
+          label="Watch on hand"
+          value={currentHand}
+          onChange={setCurrentHand}
+          options={[
+            { label: "Left", value: "left" },
+            { label: "Right", value: "right" },
+          ]}
         />
-
-        <ThemedText type="subtitle">Activity label</ThemedText>
-        <DropDownPicker
-          open={actionOpen}
-          value={actionValue}
-          items={actionItems}
-          setOpen={setActionOpen}
-          setValue={setActionValue}
-          setItems={setActionItems}
-          containerStyle={{ marginBottom: 16 }}
-          listMode="MODAL"
+        <ThemedPicker
+          label="Activity label"
+          value={currentLabel}
+          onChange={setCurrentLabel}
+          options={[
+            { label: "Sitting", value: "sitting" },
+            { label: "Walking", value: "walking" },
+            { label: "Running", value: "running" },
+          ]}
         />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>

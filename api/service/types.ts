@@ -1,7 +1,7 @@
 export type Sample = {
   timestamp: string;
   label: string;
-  watch_on_hand: "left" | "right";
+  watch_on_hand: string;
   acceleration: number[];
   gyroscope: number[];
 };

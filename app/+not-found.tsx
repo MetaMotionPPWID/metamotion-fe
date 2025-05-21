@@ -10,7 +10,7 @@ export default function NotFoundScreen() {
       <ThemedView style={styles.container}>
         <ThemedText type="title">Oops!</ThemedText>
         <Link href="/sensors" style={styles.link}>
-          <ThemedText type="link">Go back</ThemedText>
+          <ThemedText type="link">Go to home</ThemedText>
         </Link>
       </ThemedView>
     </>

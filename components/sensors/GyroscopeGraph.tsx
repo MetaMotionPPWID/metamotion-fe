@@ -88,7 +88,7 @@ export const GyroscopeGraph = ({ metaWearState }: Props) => {
       ) : (
         <LineChart
           data={chartData}
-          width={width - 32}
+          width={280}
           height={220}
           chartConfig={{
             backgroundColor: "#f5f5f5",
