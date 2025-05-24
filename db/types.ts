@@ -11,3 +11,15 @@ export type SampleRow = {
   gyroY: number;
   gyroZ: number;
 };
+
+export type PredictionRow = {
+  id: number;
+  timestamp: number;
+  label: string;
+};
+
+export type DataSample = {
+  x: number;
+  y: number;
+  z: number;
+};

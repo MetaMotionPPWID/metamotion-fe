@@ -35,7 +35,7 @@ export default function LoginScreen() {
     try {
       const accessToken = await postLogin(username, password);
       setTokens(accessToken);
-      router.replace("/sensors");
+      router.replace("/(tabs)/sensors");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || "An error occurred during login.";

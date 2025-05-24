@@ -1,9 +1,9 @@
 import { db } from "./init";
-import { SampleRow } from "./types";
+import { DataSample, SampleRow } from "./types";
 
 import type { Sample } from "@/api/service";
 
-export const fetchUpTo = (id: number): Promise<SampleRow[]> =>
+export const fetchUpTo = async (id: number): Promise<SampleRow[]> =>
   new Promise((resolve) => {
     db.transaction(
       (tx) => {
@@ -70,7 +70,63 @@ export const storeSample = (mac: string, sample: Sample): void => {
   );
 };
 
-export const getCurrentMaxId = (): Promise<number | null> =>
+export const fetchLatestAccelerometerSamples = (): Promise<DataSample[]> =>
+  new Promise((resolve) => {
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT accelX, accelY, accelZ
+           FROM samples
+           ORDER BY id DESC
+           LIMIT 100`,
+          [],
+          (_, { rows }) => {
+            const result: DataSample[] = [];
+            // Iterate in reverse order to maintain chronological order.
+            for (let i = rows.length - 1; i >= 0; i--) {
+              const row = rows.item(i);
+              result.push({ x: row.accelX, y: row.accelY, z: row.accelZ });
+            }
+            resolve(result);
+          },
+        );
+      },
+      (err) =>
+        console.error(
+          `[${new Date().toISOString()}] Failed to fetch accelerometer samples. ${err}`,
+        ),
+    );
+  });
+
+export const fetchLatestGyroscopeSamples = (): Promise<DataSample[]> =>
+  new Promise((resolve) => {
+    db.transaction(
+      (tx) => {
+        tx.executeSql(
+          `SELECT timestamp, gyroX, gyroY, gyroZ
+           FROM samples
+           ORDER BY id DESC
+           LIMIT 100`,
+          [],
+          (_, { rows }) => {
+            const result: DataSample[] = [];
+            // Iterate in reverse order to maintain chronological order.
+            for (let i = rows.length - 1; i >= 0; i--) {
+              const row = rows.item(i);
+              result.push({ x: row.gyroX, y: row.gyroY, z: row.gyroZ });
+            }
+            resolve(result);
+          },
+        );
+      },
+      (err) =>
+        console.error(
+          `[${new Date().toISOString()}] Failed to fetch gyroscope samples. ${err}`,
+        ),
+    );
+  });
+
+export const getCurrentMaxId = async (): Promise<number | null> =>
   new Promise((resolve) => {
     db.transaction(
       (tx) => {

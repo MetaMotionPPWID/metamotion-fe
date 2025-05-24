@@ -10,12 +10,6 @@ import {
   View,
 } from "react-native";
 
-import {
-  SensorWithPredictions,
-  getPredictions,
-  getSensors,
-} from "@/api/service";
-
 const activityColor = (label: string): string => {
   switch (label) {
     case "walking":
@@ -43,12 +37,6 @@ export const AnalyticsChart = () => {
   const [end, setEnd] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  useEffect(() => {
-    getSensors()
-      .then((data) => setSensors(data.map((s) => ({ ...s, predictions: [] }))))
-      .catch(() => setError("Could not load sensors"));
-  }, []);
 
   const selected = sensors.find((s) => s.mac === mac);
   const preds = selected?.predictions || [];

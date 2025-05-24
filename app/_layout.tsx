@@ -11,6 +11,8 @@ import { useEffect } from "react";
 import "react-native-reanimated";
 
 import { AuthWrapper } from "@/components/auth";
+// Enable batch flushing of samples.
+import "@/db/flushService";
 import { useColorScheme } from "@/hooks";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.

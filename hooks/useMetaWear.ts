@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NativeEventEmitter, NativeModules } from "react-native";
 import { Device } from "react-native-ble-plx";
 
-import { DataPoint, SensorDataStream, UseMetaWearResult } from "./types";
+import { SensorDataStream, UseMetaWearResult } from "./types";
+import { useBearStore } from "./useBearStore";
 
 import type { Sample } from "@/api/service";
 import { storeSample } from "@/db/samplesService";
@@ -10,13 +11,22 @@ import { storeSample } from "@/db/samplesService";
 const { MetaWearModule } = NativeModules;
 const sensorEventEmitter = new NativeEventEmitter(MetaWearModule);
 
-export const useMetaWear = (
-  currentLabel: string,
-  currentHand: string,
-): UseMetaWearResult => {
+export const useMetaWear = (): UseMetaWearResult => {
+  const currentHand = useBearStore((state) => state.currentHand);
+  const currentLabel = useBearStore((state) => state.currentLabel);
+
   const [connectedDevice, setConnectedDevice] = useState<Device | null>(null);
-  const [accelerometerData, setAccelerometerData] = useState<DataPoint[]>([]);
-  const [gyroscopeData, setGyroscopeData] = useState<DataPoint[]>([]);
+
+  const currentHandRef = useRef(currentHand);
+  const currentLabelRef = useRef(currentLabel);
+
+  useEffect(() => {
+    currentHandRef.current = currentHand;
+  }, [currentHand]);
+
+  useEffect(() => {
+    currentLabelRef.current = currentLabel;
+  }, [currentLabel]);
 
   useEffect(() => {
     const subscription = sensorEventEmitter.addListener(
@@ -24,8 +34,8 @@ export const useMetaWear = (
       (dataString: SensorDataStream) => {
         const sample: Sample = {
           timestamp: dataString.timestamp,
-          label: currentLabel,
-          watch_on_hand: currentHand,
+          label: currentLabelRef.current,
+          watch_on_hand: currentHandRef.current,
           acceleration: dataString.accelerometer,
           gyroscope: dataString.gyroscope,
         };
@@ -66,7 +76,5 @@ export const useMetaWear = (
     connectedDevice,
     connectToDevice,
     disconnectDevice,
-    accelerometerData,
-    gyroscopeData,
   };
 };

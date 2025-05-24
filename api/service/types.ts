@@ -12,17 +12,11 @@ export type PostSamplesRequest = {
   samples: Sample[];
 };
 
-export type Sensor = {
-  mac: string;
-  name: string;
-  samples: Sample[];
-};
-
 export type Prediction = {
   timestamp: string;
-  predicted_activity: string;
+  label: string[];
 };
 
-export type SensorWithPredictions = Sensor & {
-  predictions: Prediction[];
+export type PostSamplesResponse = {
+  results: Prediction[];
 };

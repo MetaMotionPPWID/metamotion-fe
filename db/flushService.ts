@@ -1,14 +1,15 @@
 import { AppState } from "react-native";
 
 // Ensure DB is initialized
-import "./db";
+import "./init";
 import { deleteUpTo, fetchUpTo, getCurrentMaxId } from "./samplesService";
 import { SampleRow } from "./types";
 import { mapToFlushRequest } from "./utils";
 
 import { postSamples } from "@/api/service";
+import { storePredictions } from "@/db/predictionsService";
 
-const FLUSH_INTERVAL_MS = 5 * 60 * 1000;
+const FLUSH_INTERVAL_MS = 30 * 1000;
 const MAX_FAILED = 5;
 
 let failedIds: number[] = [];
@@ -31,7 +32,7 @@ const updateFailedIds = async (id?: number) => {
   }
 };
 
-export const flushSamples = async (): Promise<void> => {
+const flushSamples = async (): Promise<void> => {
   console.info(`[${new Date().toISOString()}] Flush started.`);
 
   // Retry failed pivots.
@@ -41,7 +42,13 @@ export const flushSamples = async (): Promise<void> => {
 
     try {
       const req = mapToFlushRequest(batch[0].mac, "MetaWear", batch);
-      await postSamples(req);
+      const predictions = await postSamples(req);
+      storePredictions(predictions.results);
+
+      console.info(
+        `[${new Date().toISOString()}] Flush completed. Pivot position: ${pivot}. Predictions: ${predictions.results.length}.`,
+      );
+
       deleteUpTo(pivot);
       failedIds.shift();
     } catch (err) {
@@ -81,14 +88,20 @@ export const flushSamples = async (): Promise<void> => {
       "MetaWear",
       newSamplesBatch,
     );
-    await postSamples(req);
+    const predictions = await postSamples(req);
+    storePredictions(predictions.results);
+
+    console.info(
+      `[${new Date().toISOString()}] Flush completed. Predictions: ${predictions.results.length}.`,
+    );
+
     deleteUpTo(currentLargestId);
     console.info(
       `[${new Date().toISOString()}] Flush completed. Pivot position: ${currentLargestId}.`,
     );
   } catch (err) {
     console.warn(
-      `[${new Date().toISOString()}] Failed flush batch. Pivot position: ${currentLargestId}. ${err}`,
+      `[${new Date().toISOString()}] Flush failed. Pivot position: ${currentLargestId}. ${err}`,
     );
     await updateFailedIds(currentLargestId);
   }

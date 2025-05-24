@@ -2,16 +2,24 @@ import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
-import { UseMetaWearResult } from "@/hooks/types";
+import { fetchLatestAccelerometerSamples } from "@/db/samplesService";
 
-type Props = {
-  metaWearState: UseMetaWearResult;
-};
-
-export const AccelerometerGraph = ({ metaWearState }: Props) => {
+export const AccelerometerGraph = () => {
   const [visibleAxes, setVisibleAxes] = useState({ x: true, y: true, z: true });
 
-  const dataPoints = metaWearState.accelerometerData;
+  const [dataPoints, setDataPoints] = useState<
+    { x: number; y: number; z: number }[]
+  >([]);
+
+  setTimeout(
+    async () => setDataPoints(await fetchLatestAccelerometerSamples()),
+    500,
+  );
+
+  const latestData =
+    dataPoints.length > 0
+      ? dataPoints[dataPoints.length - 1]
+      : { x: 0, y: 0, z: 0 };
 
   const toggleAxis = useCallback((axis: "x" | "y" | "z") => {
     setVisibleAxes((prev) => ({
@@ -65,11 +73,6 @@ export const AccelerometerGraph = ({ metaWearState }: Props) => {
       ...(visibleAxes.z ? ["Z-axis"] : []),
     ],
   };
-
-  const latestData =
-    dataPoints.length > 0
-      ? dataPoints[dataPoints.length - 1]
-      : { x: 0, y: 0, z: 0 };
 
   return (
     <View style={styles.container}>

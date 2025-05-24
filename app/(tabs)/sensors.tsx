@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { StyleSheet } from "react-native";
 
 import {
@@ -15,12 +14,16 @@ import {
   ThemedView,
 } from "@/components/ui";
 import { useMetaWear } from "@/hooks";
+import { useBearStore } from "@/hooks/useBearStore";
 
 export default function SensorsScreen() {
-  const [currentHand, setCurrentHand] = useState("left");
-  const [currentLabel, setCurrentLabel] = useState("sitting");
+  const currentHand = useBearStore((state) => state.currentHand);
+  const setCurrentHand = useBearStore((state) => state.setCurrentHand);
 
-  const metaWearState = useMetaWear(currentLabel, currentHand);
+  const currentLabel = useBearStore((state) => state.currentLabel);
+  const setCurrentLabel = useBearStore((state) => state.setCurrentLabel);
+
+  const metaWearState = useMetaWear();
 
   return (
     <ParallaxScrollView
@@ -71,10 +74,10 @@ export default function SensorsScreen() {
         <BluetoothScanner metaWearState={metaWearState} />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <AccelerometerGraph metaWearState={metaWearState} />
+        <AccelerometerGraph />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <GyroscopeGraph metaWearState={metaWearState} />
+        <GyroscopeGraph />
       </ThemedView>
     </ParallaxScrollView>
   );

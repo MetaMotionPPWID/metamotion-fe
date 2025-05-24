@@ -14,7 +14,7 @@ const AuthGate = ({ children }: Props) => {
 
   useEffect(() => {
     if (!isLoading && !accessToken) {
-      router.replace("/login");
+      router.replace("/(auth_tabs)/login");
     }
   }, [accessToken, isLoading, router]);
 

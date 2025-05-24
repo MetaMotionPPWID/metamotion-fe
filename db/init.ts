@@ -30,3 +30,23 @@ db.transaction(
   () =>
     console.info(`[${new Date().toISOString()}] Samples database initialized.`),
 );
+
+db.transaction(
+  (tx) => {
+    void tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS predictions (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         timestamp INTEGER,
+         label TEXT
+       )`,
+    );
+  },
+  (err) =>
+    console.error(
+      `[${new Date().toISOString()}] Failed to initialize Predictions database. ${err}`,
+    ),
+  () =>
+    console.info(
+      `[${new Date().toISOString()}] Predictions database initialized.`,
+    ),
+);
