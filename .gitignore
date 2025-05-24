@@ -39,3 +39,6 @@ app-example
 
 # JetBrains
 .idea/
+
+# SQLite
+*.sqlite

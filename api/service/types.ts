@@ -6,6 +6,12 @@ export type Sample = {
   gyroscope: number[];
 };
 
+export type PostSamplesRequest = {
+  mac: string;
+  name: string;
+  samples: Sample[];
+};
+
 export type Sensor = {
   mac: string;
   name: string;
