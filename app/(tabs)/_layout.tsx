@@ -1,13 +1,12 @@
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Tabs } from "expo-router";
 import React from "react";
 import { Platform } from "react-native";
 
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
+import { HapticTab, IconSymbol } from "@/components/ui";
 import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Colors } from "@/constants";
+import { useColorScheme } from "@/hooks";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -29,15 +28,6 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="sensors"
         options={{
           title: "Sensors",
@@ -47,15 +37,6 @@ export default function TabLayout() {
               name="sensor.tag.radiowaves.forward.fill"
               color={color}
             />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: "Explore",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="paperplane.fill" color={color} />
           ),
         }}
       />

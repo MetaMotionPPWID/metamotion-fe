@@ -1,4 +1,5 @@
-# To test the app with local API please 
+# To test the app with local API please
+
 Go to api_service\api_base.ts and set Ipv4 address from your pc (Wireless LAN adapter Wi-Fi, IPv4 Address from ipconfig)
 
 # Welcome to your Expo app 👋
