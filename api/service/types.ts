@@ -18,11 +18,6 @@ export type Sensor = {
   samples: Sample[];
 };
 
-export type Batch = {
-  mac: string;
-  samples: Sample[];
-};
-
 export type Prediction = {
   timestamp: string;
   predicted_activity: string;

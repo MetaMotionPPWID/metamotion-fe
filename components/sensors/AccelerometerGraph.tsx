@@ -2,7 +2,7 @@ import React, { useCallback, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
-import { UseMetaWearResult } from "@/hooks/utils";
+import { UseMetaWearResult } from "@/hooks/types";
 
 type Props = {
   metaWearState: UseMetaWearResult;

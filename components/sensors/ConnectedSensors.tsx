@@ -10,7 +10,7 @@ import { Device } from "react-native-ble-plx";
 
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { ThemedText } from "@/components/ui/ThemedText";
-import { UseMetaWearResult } from "@/hooks/utils";
+import { UseMetaWearResult } from "@/hooks/types";
 
 type Props = {
   metaWearState: UseMetaWearResult;
