@@ -1,11 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { jwtDecode } from "jwt-decode";
 import { ReactNode, createContext, useEffect, useState } from "react";
+import { AppState } from "react-native";
 
 import { setAuthToken } from "./auth";
 
-type Props = {
-  children: ReactNode;
-};
+type Props = { children: ReactNode };
 
 export type AuthContextType = {
   accessToken: string | null;
@@ -14,52 +14,85 @@ export type AuthContextType = {
   isLoading: boolean;
 };
 
-export const AuthContext = createContext<AuthContextType | undefined>({
+export const AuthContext = createContext<AuthContextType>({
   accessToken: null,
   setTokens: () => {},
   clearTokens: () => {},
   isLoading: true,
-} as AuthContextType);
+});
+
+const MAX_TOKEN_AGE = 30 * 60 * 1000; // 30 min fallback
+
+const isExpired = (token: string, storedAt: number): boolean => {
+  const { exp } = jwtDecode<{ exp?: number }>(token); // exp is seconds
+
+  if (exp) {
+    return Date.now() >= exp * 1000;
+  }
+
+  return Date.now() - storedAt >= MAX_TOKEN_AGE;
+};
+/* -------------------------------- */
 
 export const AuthProvider = ({ children }: Props) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadToken = async () => {
-      try {
-        const storedToken = await AsyncStorage.getItem("access_token");
-        if (storedToken) {
-          setAccessToken(storedToken);
-          setAuthToken(storedToken);
-        }
-      } catch (error) {
-        console.error("Failed to load access token:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void loadToken();
-  }, []);
-
-  const setTokens = async (accessToken: string) => {
+  const clearTokens = async () => {
     try {
-      await AsyncStorage.setItem("access_token", accessToken);
-      setAccessToken(accessToken);
-      setAuthToken(accessToken);
-    } catch (error) {
-      console.error("Failed to save access token:", error);
+      await AsyncStorage.multiRemove(["access_token", "token_stored_at"]);
+      setAccessToken(null);
+      setAuthToken(null);
+    } catch (e) {
+      console.error("Failed to clear access token:", e);
     }
   };
 
-  const clearTokens = async () => {
+  const loadToken = async () => {
     try {
-      await AsyncStorage.removeItem("access_token");
-      setAccessToken(null);
-      setAuthToken(null);
-    } catch (error) {
-      console.error("Failed to clear access token:", error);
+      const [tok, ts] = await AsyncStorage.multiGet([
+        "access_token",
+        "token_stored_at",
+      ]);
+      const token = tok[1];
+      const storedAt = Number(ts[1] ?? 0);
+
+      if (token && !isExpired(token, storedAt)) {
+        setAccessToken(token);
+        setAuthToken(token);
+      } else {
+        await clearTokens();
+      }
+    } catch (e) {
+      console.error("Failed to load access token:", e);
+      await clearTokens();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadToken();
+
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        void loadToken();
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  const setTokens = async (token: string) => {
+    try {
+      await AsyncStorage.multiSet([
+        ["access_token", token],
+        ["token_stored_at", Date.now().toString()],
+      ]);
+      setAccessToken(token);
+      setAuthToken(token);
+    } catch (e) {
+      console.error("Failed to save access token:", e);
     }
   };
 
