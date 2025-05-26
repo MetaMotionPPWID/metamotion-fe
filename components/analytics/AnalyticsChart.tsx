@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dimensions } from "react-native";
 import { StackedBarChart } from "react-native-chart-kit";
 
@@ -14,10 +14,18 @@ const FETCH_INTERVAL_MS = 90 * 1000;
 export const AnalyticsChart = () => {
   const [results, setResults] = useState<PredictionRow[]>([]);
 
-  setTimeout(
-    async () => setResults(await fetchAllPredictions()),
-    FETCH_INTERVAL_MS,
-  );
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await fetchAllPredictions();
+      setResults(data);
+    };
+
+    void fetchData();
+
+    const intervalId = setInterval(fetchData, FETCH_INTERVAL_MS);
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   // Aggregate minutes per hour per activity
   const mins: Record<
