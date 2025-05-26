@@ -14,7 +14,7 @@ export type PostSamplesRequest = {
 
 export type Prediction = {
   timestamp: string;
-  label: string[];
+  labels: string[];
 };
 
 export type PostSamplesResponse = {

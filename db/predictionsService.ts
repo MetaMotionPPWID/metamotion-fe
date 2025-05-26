@@ -33,10 +33,10 @@ export const storePredictions = (predictions: Prediction[]): void => {
 
   db.transaction(
     (tx) => {
-      for (const { timestamp, label } of predictions) {
+      for (const { timestamp, labels } of predictions) {
         void tx.executeSql(
           `INSERT INTO predictions (timestamp, label) VALUES (?, ?)`,
-          [timestamp, label[0]],
+          [timestamp, labels[0]],
         );
       }
     },

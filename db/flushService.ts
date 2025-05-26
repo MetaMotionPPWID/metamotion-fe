@@ -9,7 +9,7 @@ import { mapToFlushRequest } from "./utils";
 import { postSamples } from "@/api/service";
 import { storePredictions } from "@/db/predictionsService";
 
-const FLUSH_INTERVAL_MS = 60 * 1000;
+const FLUSH_INTERVAL_MS = 90 * 1000;
 const MAX_FAILED = 5;
 
 let failedIds: number[] = [];

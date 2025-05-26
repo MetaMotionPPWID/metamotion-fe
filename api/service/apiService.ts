@@ -5,7 +5,7 @@ export const postSamples = async (
   request: PostSamplesRequest,
 ): Promise<PostSamplesResponse> => {
   const response = await api.post(`/sensors/`, {
-    request,
+    ...request,
   });
 
   return response.data;

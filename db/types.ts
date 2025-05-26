@@ -1,7 +1,7 @@
 export type SampleRow = {
   id: number;
   mac: string;
-  timestamp: string;
+  timestamp: number;
   label: string;
   watch_on_hand: string;
   accelX: number;

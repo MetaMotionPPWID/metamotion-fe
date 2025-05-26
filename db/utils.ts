@@ -10,7 +10,7 @@ export const mapToFlushRequest = (
   mac,
   name,
   samples: rows.map((r) => ({
-    timestamp: r.timestamp,
+    timestamp: new Date(Math.round(r.timestamp) * 1000).toISOString(),
     label: r.label,
     watch_on_hand: r.watch_on_hand,
     acceleration: [r.accelX, r.accelY, r.accelZ],
