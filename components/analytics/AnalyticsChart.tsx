@@ -1,173 +1,75 @@
-import { Picker } from "@react-native-picker/picker";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Button,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import React from "react";
+import { Dimensions } from "react-native";
+import { StackedBarChart } from "react-native-chart-kit";
 
-const activityColor = (label: string): string => {
-  switch (label) {
-    case "walking":
-      return "green";
-    case "running":
-      return "blue";
-    case "idle":
-      return "gray";
-    default:
-      return "black";
-  }
-};
+import { PredictionRow } from "@/db/types";
 
-type Period = {
-  activity: string;
-  start: string;
-  end: string;
-};
+interface Props {
+  predictions: PredictionRow[];
+}
 
-export const AnalyticsChart = () => {
-  const [sensors, setSensors] = useState<SensorWithPredictions[]>([]);
-  const [mac, setMac] = useState<string | null>(null);
-  const [filter, setFilter] = useState("");
-  const [start, setStart] = useState("");
-  const [end, setEnd] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+const PREDICTION_MINUTES = 5; // Each prediction counts as this many minutes
+const LEGEND = ["Walking", "Sitting", "Running"] as const;
+const BAR_COLORS = ["#4F8EF7", "#FDB913", "#D01630"];
 
-  const selected = sensors.find((s) => s.mac === mac);
-  const preds = selected?.predictions || [];
+export const ActivityScreenTimeChart = ({ predictions }: Props) => {
+  // Aggregate minutes per hour per activity
+  const buckets: Record<
+    string,
+    { walking: number; sitting: number; running: number }
+  > = {};
 
-  const filtered = useMemo(
-    () =>
-      sensors
-        .filter(
-          (s) =>
-            s.name.toLowerCase().includes(filter.toLowerCase()) ||
-            s.mac.includes(filter),
-        )
-        .sort(
-          (a, b) => a.name.localeCompare(b.name) || a.mac.localeCompare(b.mac),
-        ),
-    [sensors, filter],
-  );
+  predictions.forEach(({ timestamp, label }) => {
+    const date = new Date(timestamp * 1000); // convert sec → ms
+    const hourKey = date.toISOString().slice(0, 13); // «YYYY‑MM‑DDTHH»
 
-  // Group consecutive predictions into periods
-  const periods = useMemo(() => {
-    if (!preds.length) {
-      return [] as Period[];
+    if (!buckets[hourKey]) {
+      buckets[hourKey] = { walking: 0, sitting: 0, running: 0 };
     }
 
-    const result: Period[] = [];
-    let current = {
-      activity: preds[0].predicted_activity,
-      start: preds[0].timestamp,
-      end: preds[0].timestamp,
-    };
-
-    for (let i = 1; i < preds.length; i++) {
-      const p = preds[i];
-      if (p.predicted_activity === current.activity) {
-        current.end = p.timestamp;
-      } else {
-        result.push(current);
-        current = {
-          activity: p.predicted_activity,
-          start: p.timestamp,
-          end: p.timestamp,
-        };
-      }
+    if (label in buckets[hourKey]) {
+      buckets[hourKey][label as keyof (typeof buckets)[typeof hourKey]] +=
+        PREDICTION_MINUTES;
     }
+  });
 
-    result.push(current);
-    return result;
-  }, [preds]);
+  const hourKeys = Object.keys(buckets).sort();
 
-  const loadPredictions = useCallback(() => {
-    if (!mac || !start || !end) {
-      return setError("Select sensor & time range");
-    }
+  const labels = hourKeys.map((k) => {
+    const d = new Date(k + ":00:00Z");
+    return d.toLocaleTimeString([], { hour: "2-digit" });
+  });
 
-    setError("");
-    setLoading(true);
+  const data = hourKeys.map((k) => {
+    const { walking, sitting, running } = buckets[k];
+    return [walking, sitting, running];
+  });
 
-    getPredictions(mac, start, end)
-      .then((preds) =>
-        setSensors((prev) =>
-          prev.map((s) => (s.mac === mac ? { ...s, predictions: preds } : s)),
-        ),
-      )
-      .catch(() => setError("Could not load predictions"))
-      .finally(() => setLoading(false));
-  }, [mac, start, end]);
+  const chartWidth = Dimensions.get("window").width - 32;
+
+  const chartConfig = {
+    backgroundGradientFrom: "#ffffff",
+    backgroundGradientTo: "#ffffff",
+    decimalPlaces: 0,
+    barPercentage: 0.6,
+    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+    labelColor: (opacity = 1) => `rgba(0,0,0,${opacity})`,
+  } as const;
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <TextInput
-        placeholder="Filter devices"
-        value={filter}
-        onChangeText={setFilter}
-        style={styles.input}
-      />
-      <Picker selectedValue={mac} onValueChange={setMac} style={styles.picker}>
-        <Picker.Item label="-- choose --" value={null} />
-        {filtered.map((s) => (
-          <Picker.Item
-            key={s.mac}
-            label={`${s.name} (${s.mac})`}
-            value={s.mac}
-          />
-        ))}
-      </Picker>
-
-      <TextInput
-        placeholder="Start ISO"
-        value={start}
-        onChangeText={setStart}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="End ISO"
-        value={end}
-        onChangeText={setEnd}
-        style={styles.input}
-      />
-      <Button title="Refresh" onPress={loadPredictions} disabled={loading} />
-
-      {error ? (
-        <Text style={styles.error}>{error}</Text>
-      ) : loading ? (
-        <ActivityIndicator />
-      ) : null}
-
-      {!loading && !preds.length && (
-        <Text style={styles.noData}>No prediction data.</Text>
-      )}
-
-      {!!periods.length && (
-        <View style={styles.periods}>
-          <Text style={styles.title}>Activity Periods:</Text>
-          {periods.map((p, i) => (
-            <Text key={i} style={{ color: activityColor(p.activity) }}>
-              {new Date(p.start).toLocaleString()} -{" "}
-              {new Date(p.end).toLocaleString()}: {p.activity}
-            </Text>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+    <StackedBarChart
+      data={{
+        labels,
+        legend: LEGEND as unknown as string[],
+        data,
+        barColors: BAR_COLORS,
+      }}
+      width={chartWidth}
+      height={240}
+      yAxisSuffix="m"
+      chartConfig={chartConfig}
+      style={{ marginVertical: 8, borderRadius: 16, alignSelf: "center" }}
+      hideLegend={false}
+    />
   );
 };
-
-const styles = StyleSheet.create({
-  container: { padding: 16 },
-  input: { borderWidth: 1, borderColor: "#ccc", padding: 8, marginBottom: 8 },
-  picker: { height: 50, marginBottom: 8 },
-  error: { color: "red", marginVertical: 8 },
-  noData: { fontStyle: "italic", color: "#888", marginVertical: 8 },
-  periods: { marginTop: 16 },
-  title: { fontWeight: "bold", marginBottom: 8 },
-});

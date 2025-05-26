@@ -31,7 +31,7 @@ export const ConnectedSensors = ({ metaWearState }: Props) => {
   };
 
   return (
-    connectedDevice && (
+    connectedDevice?.id && (
       <>
         <FlatList
           data={
