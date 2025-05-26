@@ -40,6 +40,7 @@ export default function SensorsScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Sensors</ThemedText>
       </ThemedView>
+
       <ThemedView style={{ zIndex: 10, overflow: "visible" }}>
         <ThemedPicker
           label="Watch on hand"
@@ -61,24 +62,35 @@ export default function SensorsScreen() {
           ]}
         />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Connected sensors</ThemedText>
-        <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
-        <ConnectedSensors metaWearState={metaWearState} />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Available sensors</ThemedText>
-        <ThemedText type="default">
-          Tap a sensor to establish a connection.
-        </ThemedText>
-        <BluetoothScanner metaWearState={metaWearState} />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <AccelerometerGraph />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <GyroscopeGraph />
-      </ThemedView>
+
+      {metaWearState.connectedDevice && (
+        <ThemedView style={styles.stepContainer}>
+          <ThemedText type="subtitle">Connected sensors</ThemedText>
+          <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
+          <ConnectedSensors metaWearState={metaWearState} />
+        </ThemedView>
+      )}
+
+      {!metaWearState.connectedDevice && (
+        <ThemedView style={styles.stepContainer}>
+          <ThemedText type="subtitle">Available sensors</ThemedText>
+          <ThemedText type="default">
+            Tap a sensor to establish a connection.
+          </ThemedText>
+          <BluetoothScanner metaWearState={metaWearState} />
+        </ThemedView>
+      )}
+
+      {metaWearState.connectedDevice && (
+        <>
+          <ThemedView style={styles.stepContainer}>
+            <AccelerometerGraph />
+          </ThemedView>
+          <ThemedView style={styles.stepContainer}>
+            <GyroscopeGraph />
+          </ThemedView>
+        </>
+      )}
     </ParallaxScrollView>
   );
 }

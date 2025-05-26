@@ -31,37 +31,35 @@ export const ConnectedSensors = ({ metaWearState }: Props) => {
   };
 
   return (
-    connectedDevice?.id && (
-      <>
-        <FlatList
-          data={
-            connectedDevice && connectedDevice.id && connectedDevice.name
-              ? [{ id: connectedDevice.id, name: connectedDevice.name }]
-              : [{ id: "0", name: "No connections..." }]
-          }
-          keyExtractor={(item) => item.id!}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.sensorItemContainer}
-              activeOpacity={0.6}
-              onPress={() => handleSensorPress(item)}
-            >
-              <View style={styles.sensorItem}>
-                <IconSymbol size={20} color="#676652" name="wifi.square.fill" />
-                <ThemedText type="defaultSemiBold" style={styles.sensorText}>
-                  {item.name ? item.name : "Unnamed sensor"}
-                </ThemedText>
-              </View>
-              {selectedDevice?.id === item.id && (
-                <ActivityIndicator size="small" color="#303030" />
-              )}
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.sensorListContainer}
-        />
-      </>
-    )
+    <>
+      <FlatList
+        data={
+          connectedDevice && connectedDevice.id && connectedDevice.name
+            ? [{ id: connectedDevice.id, name: connectedDevice.name }]
+            : [{ id: "0", name: "No connections..." }]
+        }
+        keyExtractor={(item) => item.id!}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.sensorItemContainer}
+            activeOpacity={0.6}
+            onPress={() => handleSensorPress(item)}
+          >
+            <View style={styles.sensorItem}>
+              <IconSymbol size={20} color="#676652" name="wifi.square.fill" />
+              <ThemedText type="defaultSemiBold" style={styles.sensorText}>
+                {item.name ? item.name : "Unnamed sensor"}
+              </ThemedText>
+            </View>
+            {selectedDevice?.id === item.id && (
+              <ActivityIndicator size="small" color="#303030" />
+            )}
+          </TouchableOpacity>
+        )}
+        contentContainerStyle={styles.sensorListContainer}
+      />
+    </>
   );
 };
 

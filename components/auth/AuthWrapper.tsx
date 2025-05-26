@@ -13,10 +13,14 @@ const AuthGate = ({ children }: Props) => {
   const { accessToken, isLoading } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && !accessToken) {
-      router.replace("/(auth_tabs)/login");
+    if (!isLoading) {
+      if (!accessToken) {
+        router.replace("/(auth_tabs)/login");
+      } else {
+        router.replace("/(tabs)/sensors");
+      }
     }
-  }, [accessToken, isLoading, router]);
+  }, [accessToken, isLoading]);
 
   if (isLoading) {
     return null;

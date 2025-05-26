@@ -57,7 +57,7 @@ export default function RegisterScreen() {
       setUsername("");
       setPassword("");
       setConfirmPassword("");
-      router.replace("/login");
+      router.replace("/(auth_tabs)/login");
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || "An error occurred during registration.";

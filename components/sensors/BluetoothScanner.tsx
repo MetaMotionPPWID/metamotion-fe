@@ -21,8 +21,6 @@ export const BluetoothScanner = ({ metaWearState }: Props) => {
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [selectedDevice, setSelectedDevice] = useState<Device>();
 
-  const { connectedDevice } = metaWearState;
-
   const connectToDevice = metaWearState.connectToDevice;
   const bleManager = useRef(new BleManager()).current;
 
@@ -75,41 +73,39 @@ export const BluetoothScanner = ({ metaWearState }: Props) => {
   };
 
   return (
-    !connectedDevice && (
-      <>
-        <FlatList
-          data={sensors}
-          keyExtractor={(item) => item.id}
-          scrollEnabled={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.sensorItemContainer}
-              activeOpacity={0.6}
-              onPress={() => handleSensorPress(item)}
-            >
-              <View style={styles.sensorItem}>
-                <IconSymbol size={20} color="#676652" name="wifi.square.fill" />
-                <ThemedText type="defaultSemiBold" style={styles.sensorText}>
-                  {item.name ? item.name : "Unnamed sensor"}
-                </ThemedText>
-              </View>
-              {selectedDevice?.id === item.id && (
-                <ActivityIndicator size="small" color="#303030" />
-              )}
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.sensorListContainer}
-        />
-        {isSearching && (
-          <View style={styles.searchContainer}>
-            <ActivityIndicator size="small" color="#303030" />
-            <ThemedText type="default" style={styles.searchText}>
-              Searching...
-            </ThemedText>
-          </View>
+    <>
+      <FlatList
+        data={sensors}
+        keyExtractor={(item) => item.id}
+        scrollEnabled={false}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            style={styles.sensorItemContainer}
+            activeOpacity={0.6}
+            onPress={() => handleSensorPress(item)}
+          >
+            <View style={styles.sensorItem}>
+              <IconSymbol size={20} color="#676652" name="wifi.square.fill" />
+              <ThemedText type="defaultSemiBold" style={styles.sensorText}>
+                {item.name ? item.name : "Unnamed sensor"}
+              </ThemedText>
+            </View>
+            {selectedDevice?.id === item.id && (
+              <ActivityIndicator size="small" color="#303030" />
+            )}
+          </TouchableOpacity>
         )}
-      </>
-    )
+        contentContainerStyle={styles.sensorListContainer}
+      />
+      {isSearching && (
+        <View style={styles.searchContainer}>
+          <ActivityIndicator size="small" color="#303030" />
+          <ThemedText type="default" style={styles.searchText}>
+            Searching...
+          </ThemedText>
+        </View>
+      )}
+    </>
   );
 };
 
