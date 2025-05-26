@@ -10,6 +10,8 @@ class MetaWearModule: RCTEventEmitter {
   private var isScanning: Bool = false
   private var latestAccel: MblMwCartesianFloat?
   private var latestGyro:  MblMwCartesianFloat?
+  private var newAccel = false
+  private var newGyro  = false
   
   @objc override static func moduleName() -> String! {
     return "MetaWearModule"
@@ -84,6 +86,7 @@ class MetaWearModule: RCTEventEmitter {
     let instance = Unmanaged<MetaWearModule>.fromOpaque(context).takeUnretainedValue()
     let acceleration: MblMwCartesianFloat = dataPointer.pointee.valueAs()
     instance.latestAccel = acceleration
+    instance.newAccel = true
     instance.publishCombined()
   }
   
@@ -108,6 +111,7 @@ class MetaWearModule: RCTEventEmitter {
     let instance = Unmanaged<MetaWearModule>.fromOpaque(context).takeUnretainedValue()
     let rotation: MblMwCartesianFloat = dataPointer.pointee.valueAs()
     instance.latestGyro = rotation
+    instance.newGyro = true
     instance.publishCombined()
   }
   
@@ -129,7 +133,13 @@ class MetaWearModule: RCTEventEmitter {
 
   /// Publishes combined accelerometer and gyroscope data.
   private func publishCombined() {
-      guard let a = latestAccel, let g = latestGyro else { return }
+      guard newAccel, newGyro,
+            let a = latestAccel,
+            let g = latestGyro else { return }
+
+      newAccel = false
+      newGyro  = false
+
       let payload: [String: Any] = [
           "timestamp": Date().timeIntervalSince1970,
           "accelerometer": [Double(a.x), Double(a.y), Double(a.z)],

@@ -9,7 +9,7 @@ import { mapToFlushRequest } from "./utils";
 import { postSamples } from "@/api/service";
 import { storePredictions } from "@/db/predictionsService";
 
-const FLUSH_INTERVAL_MS = 30 * 1000;
+const FLUSH_INTERVAL_MS = 60 * 1000;
 const MAX_FAILED = 5;
 
 let failedIds: number[] = [];
@@ -92,13 +92,10 @@ const flushSamples = async (): Promise<void> => {
     storePredictions(predictions.results);
 
     console.info(
-      `[${new Date().toISOString()}] Flush completed. Predictions: ${predictions.results.length}.`,
+      `[${new Date().toISOString()}] Flush completed. Pivot position: ${currentLargestId}. Predictions: ${predictions.results.length}.`,
     );
 
     deleteUpTo(currentLargestId);
-    console.info(
-      `[${new Date().toISOString()}] Flush completed. Pivot position: ${currentLargestId}.`,
-    );
   } catch (err) {
     console.warn(
       `[${new Date().toISOString()}] Flush failed. Pivot position: ${currentLargestId}. ${err}`,

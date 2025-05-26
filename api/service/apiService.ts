@@ -4,7 +4,7 @@ import type { PostSamplesRequest, PostSamplesResponse } from "./types";
 export const postSamples = async (
   request: PostSamplesRequest,
 ): Promise<PostSamplesResponse> => {
-  const response = await api.post(`/sensors`, {
+  const response = await api.post(`/sensors/`, {
     request,
   });
 

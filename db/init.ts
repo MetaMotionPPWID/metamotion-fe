@@ -2,12 +2,30 @@ import SQLite from "react-native-sqlite-storage";
 
 export const db = SQLite.openDatabase(
   { name: "samples.sqlite", location: "default" },
-  () => console.info(`[${new Date().toISOString()}] Samples database created.`),
+  () =>
+    console.info(`[${new Date().toISOString()}] First connection to DB ready.`),
   (err) =>
     console.error(
-      `[${new Date().toISOString()}] Failed to create Samples database. ${err}`,
+      `[${new Date().toISOString()}] Failed to establish first DB connection. ${err}`,
     ),
 );
+void db.executeSql("PRAGMA journal_mode = WAL;");
+
+export const dbInsert = SQLite.openDatabase(
+  {
+    name: "samples.sqlite",
+    location: "default",
+  },
+  () =>
+    console.info(
+      `[${new Date().toISOString()}] Second connection to DB ready.`,
+    ),
+  (err) =>
+    console.error(
+      `[${new Date().toISOString()}] Failed to establish second DB connection. ${err}`,
+    ),
+);
+void dbInsert.executeSql("PRAGMA journal_mode = WAL;");
 
 db.transaction(
   (tx) => {

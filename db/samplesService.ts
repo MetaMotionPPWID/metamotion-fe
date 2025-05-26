@@ -1,4 +1,4 @@
-import { db } from "./init";
+import { db, dbInsert } from "./init";
 import { DataSample, SampleRow } from "./types";
 
 import type { Sample } from "@/api/service";
@@ -43,7 +43,7 @@ export const storeSample = (mac: string, sample: Sample): void => {
   const [ax, ay, az] = sample.acceleration;
   const [gx, gy, gz] = sample.gyroscope;
 
-  db.transaction(
+  dbInsert.transaction(
     (tx) => {
       void tx.executeSql(
         `INSERT INTO samples
