@@ -1,5 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
 import { fetchLatestGyroscopeSamples } from "@/db/samplesService";
@@ -72,6 +78,8 @@ export const GyroscopeGraph = () => {
     ],
   };
 
+  const width = Dimensions.get("window").width - 95;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Gyroscope Data</Text>
@@ -83,7 +91,7 @@ export const GyroscopeGraph = () => {
       ) : (
         <LineChart
           data={chartData}
-          width={280}
+          width={width}
           height={220}
           chartConfig={{
             backgroundColor: "#f5f5f5",

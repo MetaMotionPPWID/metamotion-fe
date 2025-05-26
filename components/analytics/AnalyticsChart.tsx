@@ -1,61 +1,65 @@
-import React from "react";
+import React, { useState } from "react";
 import { Dimensions } from "react-native";
 import { StackedBarChart } from "react-native-chart-kit";
 
-import { PredictionRow } from "@/db/types";
+import { Prediction } from "@/api/service";
+import { fetchAllPredictions } from "@/db/predictionsService";
 
-interface Props {
-  predictions: PredictionRow[];
-}
-
-const PREDICTION_MINUTES = 5; // Each prediction counts as this many minutes
+const SAMPLE_MINUTES = 0.3; // 18 seconds
 const LEGEND = ["Walking", "Sitting", "Running"] as const;
-const BAR_COLORS = ["#4F8EF7", "#FDB913", "#D01630"];
+const BAR_COLORS = ["#4F8EF7", "#FDB913", "#E81010"];
+const MAX_HOURS = 4;
+const FETCH_INTERVAL_MS = 90 * 1000;
 
-export const ActivityScreenTimeChart = ({ predictions }: Props) => {
+export const AnalyticsChart = () => {
+  const [results, setResults] = useState<Prediction[]>([]);
+
+  setTimeout(
+    async () => setResults(await fetchAllPredictions()),
+    FETCH_INTERVAL_MS,
+  );
+
   // Aggregate minutes per hour per activity
-  const buckets: Record<
+  const mins: Record<
     string,
     { walking: number; sitting: number; running: number }
   > = {};
 
-  predictions.forEach(({ timestamp, label }) => {
-    const date = new Date(timestamp * 1000); // convert sec → ms
-    const hourKey = date.toISOString().slice(0, 13); // «YYYY‑MM‑DDTHH»
-
-    if (!buckets[hourKey]) {
-      buckets[hourKey] = { walking: 0, sitting: 0, running: 0 };
+  results.forEach(({ timestamp, labels }) => {
+    const ms = Date.parse(timestamp);
+    if (isNaN(ms)) {
+      return;
     }
 
-    if (label in buckets[hourKey]) {
-      buckets[hourKey][label as keyof (typeof buckets)[typeof hourKey]] +=
-        PREDICTION_MINUTES;
+    const d = new Date(ms);
+    d.setUTCMinutes(0, 0, 0); // floor to hour
+    const key = d.toISOString().slice(0, 13); // YYYY‑MM‑DDTHH
+
+    if (!mins[key]) {
+      mins[key] = { walking: 0, sitting: 0, running: 0 };
     }
+
+    labels.forEach((l) => {
+      if (l in mins[key]) {
+        mins[key][l as keyof (typeof mins)[typeof key]] += SAMPLE_MINUTES;
+      }
+    });
   });
 
-  const hourKeys = Object.keys(buckets).sort();
+  const allHourKeys = Object.keys(mins).sort();
+  const hourKeys = allHourKeys.slice(-MAX_HOURS);
 
   const labels = hourKeys.map((k) => {
     const d = new Date(k + ":00:00Z");
-    return d.toLocaleTimeString([], { hour: "2-digit" });
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   });
 
   const data = hourKeys.map((k) => {
-    const { walking, sitting, running } = buckets[k];
+    const { walking, sitting, running } = mins[k];
     return [walking, sitting, running];
   });
 
-  const chartWidth = Dimensions.get("window").width - 32;
-
-  const chartConfig = {
-    backgroundGradientFrom: "#ffffff",
-    backgroundGradientTo: "#ffffff",
-    decimalPlaces: 0,
-    barPercentage: 0.6,
-    color: (opacity = 1) => `rgba(0,0,0,${opacity})`,
-    labelColor: (opacity = 1) => `rgba(0,0,0,${opacity})`,
-  } as const;
-
+  const width = Dimensions.get("window").width - 60;
   return (
     <StackedBarChart
       data={{
@@ -64,12 +68,17 @@ export const ActivityScreenTimeChart = ({ predictions }: Props) => {
         data,
         barColors: BAR_COLORS,
       }}
-      width={chartWidth}
+      width={width}
       height={240}
-      yAxisSuffix="m"
-      chartConfig={chartConfig}
-      style={{ marginVertical: 8, borderRadius: 16, alignSelf: "center" }}
-      hideLegend={false}
+      withHorizontalLabels={false}
+      hideLegend={true}
+      chartConfig={{
+        backgroundGradientFrom: "#ffffff",
+        backgroundGradientTo: "#ffffff",
+        decimalPlaces: 0,
+        color: (o = 1) => `rgba(0,0,0,${o})`,
+        labelColor: (o = 1) => `rgba(0,0,0,${o})`,
+      }}
     />
   );
 };

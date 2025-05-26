@@ -1,17 +1,16 @@
 import { db } from "./init";
-import type { PredictionRow } from "./types";
 
 import type { Prediction } from "@/api/service";
 
-export const fetchAllPredictions = async (): Promise<PredictionRow[]> =>
+export const fetchAllPredictions = async (): Promise<Prediction[]> =>
   new Promise((resolve) => {
     db.transaction(
       (tx) => {
         tx.executeSql(
-          `SELECT * FROM predictions ORDER BY id`,
+          `SELECT timestamp, labels FROM predictions ORDER BY id`,
           [],
           (_, { rows }) => {
-            const result: PredictionRow[] = [];
+            const result: Prediction[] = [];
             for (let i = 0; i < rows.length; i++) {
               result.push(rows.item(i));
             }
@@ -35,7 +34,7 @@ export const storePredictions = (predictions: Prediction[]): void => {
     (tx) => {
       for (const { timestamp, labels } of predictions) {
         void tx.executeSql(
-          `INSERT INTO predictions (timestamp, label) VALUES (?, ?)`,
+          `INSERT INTO predictions (timestamp, labels) VALUES (?, ?)`,
           [timestamp, labels[0]],
         );
       }

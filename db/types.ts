@@ -13,7 +13,6 @@ export type SampleRow = {
 };
 
 export type PredictionRow = {
-  id: number;
   timestamp: number;
   label: string;
 };

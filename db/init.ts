@@ -55,7 +55,7 @@ db.transaction(
       `CREATE TABLE IF NOT EXISTS predictions (
          id INTEGER PRIMARY KEY AUTOINCREMENT,
          timestamp INTEGER,
-         label TEXT
+         labels TEXT
        )`,
     );
   },

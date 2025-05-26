@@ -1,5 +1,11 @@
 import React, { useCallback, useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { LineChart } from "react-native-chart-kit";
 
 import { fetchLatestAccelerometerSamples } from "@/db/samplesService";
@@ -68,11 +74,13 @@ export const AccelerometerGraph = () => {
         : []),
     ],
     legend: [
-      ...(visibleAxes.x ? ["X-axis"] : []),
-      ...(visibleAxes.y ? ["Y-axis"] : []),
-      ...(visibleAxes.z ? ["Z-axis"] : []),
+      ...(visibleAxes.x ? ["X"] : []),
+      ...(visibleAxes.y ? ["Y"] : []),
+      ...(visibleAxes.z ? ["Z"] : []),
     ],
   };
+
+  const width = Dimensions.get("window").width - 95;
 
   return (
     <View style={styles.container}>
@@ -85,7 +93,7 @@ export const AccelerometerGraph = () => {
       ) : (
         <LineChart
           data={chartData}
-          width={280}
+          width={width}
           height={220}
           chartConfig={{
             backgroundColor: "#f5f5f5",
