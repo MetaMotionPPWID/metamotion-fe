@@ -17,6 +17,11 @@ export type Prediction = {
   labels: string[];
 };
 
+export type PredictionRow = {
+  timestamp: string;
+  labels: string;
+};
+
 export type PostSamplesResponse = {
   results: Prediction[];
 };

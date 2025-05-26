@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Dimensions } from "react-native";
 import { StackedBarChart } from "react-native-chart-kit";
 
-import { Prediction } from "@/api/service";
+import { PredictionRow } from "@/api/service";
 import { fetchAllPredictions } from "@/db/predictionsService";
 
 const SAMPLE_MINUTES = 0.3; // 18 seconds
@@ -12,7 +12,7 @@ const MAX_HOURS = 4;
 const FETCH_INTERVAL_MS = 90 * 1000;
 
 export const AnalyticsChart = () => {
-  const [results, setResults] = useState<Prediction[]>([]);
+  const [results, setResults] = useState<PredictionRow[]>([]);
 
   setTimeout(
     async () => setResults(await fetchAllPredictions()),
@@ -39,11 +39,9 @@ export const AnalyticsChart = () => {
       mins[key] = { walking: 0, sitting: 0, running: 0 };
     }
 
-    labels.forEach((l) => {
-      if (l in mins[key]) {
-        mins[key][l as keyof (typeof mins)[typeof key]] += SAMPLE_MINUTES;
-      }
-    });
+    if (labels in mins[key]) {
+      mins[key][labels as keyof (typeof mins)[typeof key]] += SAMPLE_MINUTES;
+    }
   });
 
   const allHourKeys = Object.keys(mins).sort();

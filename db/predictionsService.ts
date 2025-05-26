@@ -1,8 +1,8 @@
 import { db } from "./init";
 
-import type { Prediction } from "@/api/service";
+import type { Prediction, PredictionRow } from "@/api/service";
 
-export const fetchAllPredictions = async (): Promise<Prediction[]> =>
+export const fetchAllPredictions = async (): Promise<PredictionRow[]> =>
   new Promise((resolve) => {
     db.transaction(
       (tx) => {
@@ -10,7 +10,7 @@ export const fetchAllPredictions = async (): Promise<Prediction[]> =>
           `SELECT timestamp, labels FROM predictions ORDER BY id`,
           [],
           (_, { rows }) => {
-            const result: Prediction[] = [];
+            const result: PredictionRow[] = [];
             for (let i = 0; i < rows.length; i++) {
               result.push(rows.item(i));
             }
