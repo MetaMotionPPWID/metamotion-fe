@@ -14,6 +14,10 @@ import com.mbientlab.metawear.android.BtleService
 import com.mbientlab.metawear.data.Acceleration
 import com.mbientlab.metawear.module.Accelerometer
 import java.util.concurrent.CopyOnWriteArrayList
+import com.mbientlab.metawear.module.GyroBmi160
+import com.mbientlab.metawear.module.GyroBmi160.OutputDataRate
+import com.mbientlab.metawear.module.GyroBmi160.Range
+import com.mbientlab.metawear.data.AngularVelocity
 
 @ReactModule(name = "MetaWearModule")
 class MetaWearModule(private val reactContext: ReactApplicationContext) :
@@ -89,6 +93,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
     private fun setupSensors() {
         board?.let { board ->
             setupAccelerometer(board)
+            setupGyroscope(board)
         }
     }
 
@@ -106,6 +111,27 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             }.continueWith {
                 accelerometer.acceleration().start()
                 accelerometer.start()
+            }
+        }
+    }
+
+    private fun setupGyroscope(board: MetaWearBoard) {
+        board.getModule(GyroBmi160::class.java)?.let { gyro ->
+            gyro.configure()
+                .odr(GyroBmi160.OutputDataRate.ODR_100_HZ)
+                .range(GyroBmi160.Range.FSR_250)
+                .commit()
+
+            gyro.angularVelocity().addRouteAsync { source ->
+                source.stream { data, _ ->
+                    data.value(AngularVelocity::class.java)?.let { gyroData ->
+                        val dataString = "x: ${gyroData.x()}, y: ${gyroData.y()}, z: ${gyroData.z()}"
+                        eventEmitter?.emit("GYRO_DATA", dataString)
+                    }
+                }
+            }.continueWith {
+                gyro.angularVelocity().start()
+                gyro.start()
             }
         }
     }
