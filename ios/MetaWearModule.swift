@@ -8,6 +8,10 @@ class MetaWearModule: RCTEventEmitter {
   
   private var device: MetaWear?
   private var isScanning: Bool = false
+  private var latestAccel: MblMwCartesianFloat?
+  private var latestGyro:  MblMwCartesianFloat?
+  private var newAccel = false
+  private var newGyro  = false
   
   @objc override static func moduleName() -> String! {
     return "MetaWearModule"
@@ -18,7 +22,7 @@ class MetaWearModule: RCTEventEmitter {
   }
   
   override func supportedEvents() -> [String]! {
-    return ["SENSOR_DATA","GYRO_DATA"]
+    return ["SENSOR_DATA"]
   }
   
   override func startObserving() {
@@ -81,17 +85,9 @@ class MetaWearModule: RCTEventEmitter {
     guard let context = context, let dataPointer = obj else { return }
     let instance = Unmanaged<MetaWearModule>.fromOpaque(context).takeUnretainedValue()
     let acceleration: MblMwCartesianFloat = dataPointer.pointee.valueAs()
-    let sensorDataString = String(
-      format: "x: %.6f, y: %.6f, z: %.6f, timestamp: %.0f",
-      Double(acceleration.x),
-      Double(acceleration.y),
-      Double(acceleration.z),
-      Date().timeIntervalSince1970
-    )
-    
-    DispatchQueue.main.async {
-      instance.sendEvent(withName: "SENSOR_DATA", body: sensorDataString)
-    }
+    instance.latestAccel = acceleration
+    instance.newAccel = true
+    instance.publishCombined()
   }
   
   /// Sets up accelerometer and starts streaming data.
@@ -114,16 +110,9 @@ class MetaWearModule: RCTEventEmitter {
     guard let context = context, let dataPointer = obj else { return }
     let instance = Unmanaged<MetaWearModule>.fromOpaque(context).takeUnretainedValue()
     let rotation: MblMwCartesianFloat = dataPointer.pointee.valueAs()
-    let sensorDataString = String(
-      format: "x: %.6f, y: %.6f, z: %.6f, timestamp: %.0f",
-      Double(rotation.x),
-      Double(rotation.y),
-      Double(rotation.z),
-      Date().timeIntervalSince1970
-    )
-    DispatchQueue.main.async {
-      instance.sendEvent(withName: "GYRO_DATA", body: sensorDataString)
-    }
+    instance.latestGyro = rotation
+    instance.newGyro = true
+    instance.publishCombined()
   }
   
   /// Sets up gyroscope and starts streaming data.
@@ -140,6 +129,25 @@ class MetaWearModule: RCTEventEmitter {
     }
     mbl_mw_gyro_bmi160_enable_rotation_sampling(board)
     mbl_mw_gyro_bmi160_start(board)
+  }
+
+  /// Publishes combined accelerometer and gyroscope data.
+  private func publishCombined() {
+      guard newAccel, newGyro,
+            let a = latestAccel,
+            let g = latestGyro else { return }
+
+      newAccel = false
+      newGyro  = false
+
+      let payload: [String: Any] = [
+          "timestamp": Date().timeIntervalSince1970,
+          "accelerometer": [Double(a.x), Double(a.y), Double(a.z)],
+          "gyroscope":  [Double(g.x), Double(g.y), Double(g.z)]
+      ]
+      DispatchQueue.main.async {
+          self.sendEvent(withName: "SENSOR_DATA", body: payload)
+      }
   }
   
   /// Disconnects from the connected device.

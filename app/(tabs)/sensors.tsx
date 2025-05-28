@@ -1,32 +1,30 @@
 import { StyleSheet } from "react-native";
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import { BluetoothScanner } from "@/components/BluetoothScanner";
-import { ConnectedSensors } from "@/components/ConnectedSensors";
-import AccelerometerGraph from "@/components/AccelerometerGraph";
-import GyroscopeGraph from "@/components/GyroscopeGraph";
-import { useMetawear } from "@/hooks/useMetawear";
-import { useState } from "react";
-import DropDownPicker from "react-native-dropdown-picker";
+
+import {
+  AccelerometerGraph,
+  BluetoothScanner,
+  ConnectedSensors,
+  GyroscopeGraph,
+} from "@/components/sensors";
+import {
+  IconSymbol,
+  ParallaxScrollView,
+  ThemedPicker,
+  ThemedText,
+  ThemedView,
+} from "@/components/ui";
+import { useMetaWear } from "@/hooks";
+import { useBearStore } from "@/hooks/useBearStore";
 
 export default function SensorsScreen() {
-  const [handOpen, setHandOpen] = useState(false);
-  const [handValue, setHandValue] = useState<"left" | "right">("left");
-  const [handItems, setHandItems] = useState([
-    { label: "Left", value: "left" },
-    { label: "Right", value: "right" },
-  ]);
-  const [actionOpen, setActionOpen] = useState(false);
-  const [actionValue, setActionValue] = useState< "sitting" | "walking" | "running">("sitting");
-  const [actionItems, setActionItems] = useState([
-    { label: "Sitting", value: "sitting" },
-    { label: "Walking", value: "walking" },
-    { label: "Running", value: "running" },
-  ]);
+  const currentHand = useBearStore((state) => state.currentHand);
+  const setCurrentHand = useBearStore((state) => state.setCurrentHand);
 
-  const metaWearState = useMetawear(actionValue, handValue);
+  const currentLabel = useBearStore((state) => state.currentLabel);
+  const setCurrentLabel = useBearStore((state) => state.setCurrentLabel);
+
+  const metaWearState = useMetaWear();
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#DDA05D", dark: "#DDA05D" }}
@@ -42,57 +40,57 @@ export default function SensorsScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Sensors</ThemedText>
       </ThemedView>
-      <ThemedView
-        style={[styles.stepContainer, { zIndex: 10, overflow: "visible" }]}
-      >
-        <ThemedText type="subtitle">Watch on hand</ThemedText>
-        <DropDownPicker
-          open={handOpen}
-          value={handValue}
-          items={handItems}
-          setOpen={setHandOpen}
-          setValue={setHandValue}
-          setItems={setHandItems}
-          containerStyle={{ marginBottom: 16 }}
-          listMode="MODAL"
-          // zIndex={3000}
-          // zIndexInverse={1000}
-          // onOpen={() => setActionOpen(false)}
-        />
 
-        <ThemedText type="subtitle">Activity label</ThemedText>
-        <DropDownPicker
-          open={actionOpen}
-          value={actionValue}
-          items={actionItems}
-          setOpen={setActionOpen}
-          setValue={setActionValue}
-          setItems={setActionItems}
-          containerStyle={{ marginBottom: 16 }}
-          listMode="MODAL"
-          // zIndex={2000}
-          // zIndexInverse={2000}
-          // onOpen={() => setHandOpen(false)}
+      <ThemedView style={{ zIndex: 10, overflow: "visible" }}>
+        <ThemedPicker
+          label="Watch on hand"
+          value={currentHand}
+          onChange={setCurrentHand}
+          options={[
+            { label: "Left", value: "left" },
+            { label: "Right", value: "right" },
+          ]}
+        />
+        <ThemedPicker
+          label="Activity label"
+          value={currentLabel}
+          onChange={setCurrentLabel}
+          options={[
+            { label: "Sitting", value: "sitting" },
+            { label: "Walking", value: "walking" },
+            { label: "Running", value: "running" },
+          ]}
         />
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Connected sensors</ThemedText>
-        <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
-        <ConnectedSensors metaWearState={metaWearState} />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Available sensors</ThemedText>
-        <ThemedText type="default">
-          Tap a sensor to establish a connection.
-        </ThemedText>
-        <BluetoothScanner metaWearState={metaWearState} />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <AccelerometerGraph metaWearState={metaWearState} />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <GyroscopeGraph metaWearState={metaWearState} />
-      </ThemedView>
+
+      {metaWearState.connectedDevice && (
+        <ThemedView style={styles.stepContainer}>
+          <ThemedText type="subtitle">Connected sensors</ThemedText>
+          <ThemedText type="default">Tap a sensor to disconnect.</ThemedText>
+          <ConnectedSensors metaWearState={metaWearState} />
+        </ThemedView>
+      )}
+
+      {!metaWearState.connectedDevice && (
+        <ThemedView style={styles.stepContainer}>
+          <ThemedText type="subtitle">Available sensors</ThemedText>
+          <ThemedText type="default">
+            Tap a sensor to establish a connection.
+          </ThemedText>
+          <BluetoothScanner metaWearState={metaWearState} />
+        </ThemedView>
+      )}
+
+      {metaWearState.connectedDevice && (
+        <>
+          <ThemedView style={styles.stepContainer}>
+            <AccelerometerGraph />
+          </ThemedView>
+          <ThemedView style={styles.stepContainer}>
+            <GyroscopeGraph />
+          </ThemedView>
+        </>
+      )}
     </ParallaxScrollView>
   );
 }

@@ -1,20 +1,14 @@
 import { StyleSheet } from "react-native";
-import { useEffect } from "react";
 
-import ParallaxScrollView from "@/components/ParallaxScrollView";
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import Chart from "../chart";
-import { useAuth } from "../authContext";
+import { AnalyticsChart, AnalyticsLegend } from "@/components/analytics";
+import {
+  IconSymbol,
+  ParallaxScrollView,
+  ThemedText,
+  ThemedView,
+} from "@/components/ui";
+
 export default function AnalyticsScreen() {
-  const { accessToken, refreshToken } = useAuth();
-
-  useEffect(() => {
-    console.log("Access Token:", accessToken);
-    console.log("Refresh Token:", refreshToken);
-  }, [accessToken, refreshToken]);
-
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#D0D0D0", dark: "#DDA05D" }}
@@ -30,12 +24,10 @@ export default function AnalyticsScreen() {
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Analytics</ThemedText>
       </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle"></ThemedText>
-        <ThemedText type="default">Browse analytics data.</ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Chart />
+        <AnalyticsChart />
+        <AnalyticsLegend />
       </ThemedView>
     </ParallaxScrollView>
   );
