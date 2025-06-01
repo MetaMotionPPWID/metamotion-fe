@@ -9,7 +9,7 @@ const SAMPLE_MINUTES = 0.3; // 18 seconds
 const LEGEND = ["Walking", "Sitting", "Running"] as const;
 const BAR_COLORS = ["#4F8EF7", "#FDB913", "#E81010"];
 const MAX_HOURS = 4;
-const FETCH_INTERVAL_MS = 90 * 1000;
+const FETCH_INTERVAL_MS = 60 * 1000;
 
 export const AnalyticsChart = () => {
   const [results, setResults] = useState<PredictionRow[]>([]);
