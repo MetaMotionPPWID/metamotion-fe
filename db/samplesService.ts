@@ -40,12 +40,8 @@ export const deleteUpTo = (id: number): void => {
 };
 
 export const storeSample = (mac: string, sample: Sample): void => {
-  const ax = sample.acceleration?.[0] ?? 0;
-  const ay = sample.acceleration?.[1] ?? 0;
-  const az = sample.acceleration?.[2] ?? 0;
-  const gx = sample.gyroscope?.[0] ?? 0;
-  const gy = sample.gyroscope?.[1] ?? 0;
-  const gz = sample.gyroscope?.[2] ?? 0;
+  const [ax, ay, az] = sample.acceleration;
+  const [gx, gy, gz] = sample.gyroscope;
 
   dbInsert.transaction(
     (tx) => {
