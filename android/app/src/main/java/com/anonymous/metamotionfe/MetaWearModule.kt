@@ -4,7 +4,6 @@ import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.ServiceConnection
 import android.os.IBinder
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -12,12 +11,9 @@ import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.mbientlab.metawear.MetaWearBoard
 import com.mbientlab.metawear.android.BtleService
 import com.mbientlab.metawear.data.Acceleration
-import com.mbientlab.metawear.module.Accelerometer
-import java.util.concurrent.CopyOnWriteArrayList
-import com.mbientlab.metawear.module.GyroBmi160
-import com.mbientlab.metawear.module.GyroBmi160.OutputDataRate
-import com.mbientlab.metawear.module.GyroBmi160.Range
 import com.mbientlab.metawear.data.AngularVelocity
+import com.mbientlab.metawear.module.Accelerometer
+import com.mbientlab.metawear.module.GyroBmi160
 
 @ReactModule(name = "MetaWearModule")
 class MetaWearModule(private val reactContext: ReactApplicationContext) :
@@ -25,17 +21,11 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
 
     private var serviceBinder: BtleService.LocalBinder? = null
     private var board: MetaWearBoard? = null
-    private val sensorDataBuffer = CopyOnWriteArrayList<String>()
     private val eventEmitter: DeviceEventManagerModule.RCTDeviceEventEmitter? =
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
 
-    init {
-        // Bindujemy usługę MetaWear BtleService
-        reactContext.bindService(
-            Intent(reactContext, BtleService::class.java),
-            this, Context.BIND_AUTO_CREATE
-        )
-    }
+    private var latestAccel: Acceleration? = null
+    private var latestGyro: AngularVelocity? = null
 
     override fun getName() = "MetaWearModule"
 
@@ -68,6 +58,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             null
         }
     }
+
     @ReactMethod
     fun disconnectFromDevice(macAddress: String, promise: Promise) {
         val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
@@ -87,7 +78,6 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             }
             null
         }
-
     }
 
     private fun setupSensors() {
@@ -97,23 +87,38 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    private fun maybeEmitSensorData() {
+        if (latestAccel != null && latestGyro != null) {
+            val accArray = Arguments.createArray().apply {
+                pushDouble(latestAccel!!.x().toDouble())
+                pushDouble(latestAccel!!.y().toDouble())
+                pushDouble(latestAccel!!.z().toDouble())
+            }
+
+            val gyroArray = Arguments.createArray().apply {
+                pushDouble(latestGyro!!.x().toDouble())
+                pushDouble(latestGyro!!.y().toDouble())
+                pushDouble(latestGyro!!.z().toDouble())
+            }
+
+            val map = Arguments.createMap()
+            map.putArray("accelerometer", accArray)
+            map.putArray("gyroscope", gyroArray)
+            map.putDouble("timestamp", System.currentTimeMillis().toDouble())
+
+            eventEmitter?.emit("SENSOR_DATA", map)
+
+            latestAccel = null
+            latestGyro = null
+        }
+    }
+
     private fun setupAccelerometer(board: MetaWearBoard) {
         board.getModule(Accelerometer::class.java)?.let { accelerometer ->
             accelerometer.acceleration().addRouteAsync { source ->
                 source.stream { data, _ ->
-                    data.value(Acceleration::class.java)?.let { accel ->
-                        val accArray = Arguments.createArray().apply {
-                            pushDouble(accel.x().toDouble())
-                            pushDouble(accel.y().toDouble())
-                            pushDouble(accel.z().toDouble())
-                        }
-
-                        val map = Arguments.createMap()
-                        map.putArray("accelerometer", accArray)
-                        map.putDouble("timestamp", System.currentTimeMillis().toDouble())
-
-                        eventEmitter?.emit("SENSOR_DATA", map)
-                    }
+                    latestAccel = data.value(Acceleration::class.java)
+                    maybeEmitSensorData()
                 }
             }.continueWith {
                 accelerometer.acceleration().start()
@@ -131,19 +136,8 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
 
             gyro.angularVelocity().addRouteAsync { source ->
                 source.stream { data, _ ->
-                    data.value(AngularVelocity::class.java)?.let { gyroData ->
-                        val gyroArray = Arguments.createArray().apply {
-                            pushDouble(gyroData.x().toDouble())
-                            pushDouble(gyroData.y().toDouble())
-                            pushDouble(gyroData.z().toDouble())
-                        }
-
-                        val map = Arguments.createMap()
-                        map.putArray("gyroscope", gyroArray)
-                        map.putDouble("timestamp", System.currentTimeMillis().toDouble())
-
-                        eventEmitter?.emit("SENSOR_DATA", map)
-                    }
+                    latestGyro = data.value(AngularVelocity::class.java)
+                    maybeEmitSensorData()
                 }
             }.continueWith {
                 gyro.angularVelocity().start()
@@ -153,21 +147,10 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod
-    fun getSensorData(promise: Promise) {
-        val dataList = sensorDataBuffer.toList()
-        promise.resolve(Arguments.fromList(dataList))
-        sensorDataBuffer.clear()
-    }
+    fun addListener(eventName: String) {}
 
     @ReactMethod
-    fun addListener(eventName: String) {
-        // Wymagane przez React Native (do DeviceEventEmitter)
-    }
-
-    @ReactMethod
-    fun removeListeners(count: Int) {
-        // Wymagane przez React Native (do DeviceEventEmitter)
-    }
+    fun removeListeners(count: Int) {}
 
     override fun onCatalystInstanceDestroy() {
         super.onCatalystInstanceDestroy()
