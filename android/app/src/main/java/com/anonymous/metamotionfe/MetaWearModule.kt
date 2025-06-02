@@ -102,10 +102,17 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             accelerometer.acceleration().addRouteAsync { source ->
                 source.stream { data, _ ->
                     data.value(Acceleration::class.java)?.let { accel ->
-                        val dataString = "x: ${accel.x()}, y: ${accel.y()}, z: ${accel.z()}"
-                        sensorDataBuffer.add(dataString)
-                        // Wysyłamy zdarzenie do JS – np. dla natychmiastowej aktualizacji UI
-                        eventEmitter?.emit("SENSOR_DATA", dataString)
+                        val accArray = Arguments.createArray().apply {
+                            pushDouble(accel.x().toDouble())
+                            pushDouble(accel.y().toDouble())
+                            pushDouble(accel.z().toDouble())
+                        }
+
+                        val map = Arguments.createMap()
+                        map.putArray("accelerometer", accArray)
+                        map.putDouble("timestamp", System.currentTimeMillis().toDouble())
+
+                        eventEmitter?.emit("SENSOR_DATA", map)
                     }
                 }
             }.continueWith {
@@ -125,8 +132,17 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             gyro.angularVelocity().addRouteAsync { source ->
                 source.stream { data, _ ->
                     data.value(AngularVelocity::class.java)?.let { gyroData ->
-                        val dataString = "x: ${gyroData.x()}, y: ${gyroData.y()}, z: ${gyroData.z()}"
-                        eventEmitter?.emit("GYRO_DATA", dataString)
+                        val gyroArray = Arguments.createArray().apply {
+                            pushDouble(gyroData.x().toDouble())
+                            pushDouble(gyroData.y().toDouble())
+                            pushDouble(gyroData.z().toDouble())
+                        }
+
+                        val map = Arguments.createMap()
+                        map.putArray("gyroscope", gyroArray)
+                        map.putDouble("timestamp", System.currentTimeMillis().toDouble())
+
+                        eventEmitter?.emit("SENSOR_DATA", map)
                     }
                 }
             }.continueWith {
