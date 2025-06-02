@@ -102,9 +102,9 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             }
 
             val map = Arguments.createMap()
+            map.putDouble("timestamp", System.currentTimeMillis().toDouble() / 1000.0)
             map.putArray("accelerometer", accArray)
             map.putArray("gyroscope", gyroArray)
-            map.putDouble("timestamp", System.currentTimeMillis().toDouble())
 
             eventEmitter?.emit("SENSOR_DATA", map)
 
