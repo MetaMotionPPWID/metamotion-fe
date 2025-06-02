@@ -40,8 +40,7 @@ export const useMetaWear = (): UseMetaWearResult => {
           gyroscope: dataString.gyroscope,
         };
 
-        if (!connectedDevice) return;
-        storeSample(connectedDevice.id, sample);
+        storeSample(connectedDevice!.id, sample);
       },
     );
     return () => {
