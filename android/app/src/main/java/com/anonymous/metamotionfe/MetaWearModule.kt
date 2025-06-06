@@ -4,6 +4,7 @@ import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.os.IBinder
 import com.facebook.react.bridge.*
 import com.facebook.react.module.annotations.ReactModule
@@ -52,10 +53,14 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             if (task.isFaulted) {
                 promise.reject("CONN_ERROR", task.error)
             } else {
-                setupSensors()
-                promise.resolve("Connected to MetaWear device: $macAddress")
+                if (boardInstance.isConnected) {
+                    Log.i("MetaWear", "Device connected")
+                    setupSensors()  // <-- tylko wtedy startuj stream
+                    promise.resolve("Connected to MetaWear device: $macAddress")
+                } else {
+                    promise.reject("NOT_CONNECTED", "Board is not connected after connectAsync()")
+                }
             }
-            null
         }
     }
 

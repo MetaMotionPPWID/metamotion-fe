@@ -29,22 +29,32 @@ export const useMetaWear = (): UseMetaWearResult => {
   }, [currentLabel]);
 
   useEffect(() => {
-    const subscription = sensorEventEmitter.addListener(
-      "SENSOR_DATA",
-      (dataString: SensorDataStream) => {
-        const sample: Sample = {
-          timestamp: dataString.timestamp,
-          label: currentLabelRef.current,
-          watch_on_hand: currentHandRef.current,
-          acceleration: dataString.accelerometer,
-          gyroscope: dataString.gyroscope,
-        };
+    if (!connectedDevice) return; // 🔐 nie zaczynaj nasłuchu dopóki nie ustawione
 
-        storeSample(connectedDevice!.id, sample);
-      },
-    );
+    const listener = (data: SensorDataStream) => {
+      if (
+        !Array.isArray(data.accelerometer) ||
+        !Array.isArray(data.gyroscope)
+      ) {
+        console.warn("Invalid data format:", data);
+        return;
+      }
+
+      const sample: Sample = {
+        timestamp: data.timestamp,
+        label: currentLabelRef.current,
+        watch_on_hand: currentHandRef.current,
+        acceleration: data.accelerometer,
+        gyroscope: data.gyroscope,
+      };
+
+      storeSample(connectedDevice.id, sample);
+    };
+
+    sensorEventEmitter.addListener("SENSOR_DATA", listener);
+
     return () => {
-      subscription.remove();
+      sensorEventEmitter.removeListener("SENSOR_DATA", listener);
     };
   }, [connectedDevice]);
 
