@@ -37,6 +37,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
     override fun getName() = "MetaWearModule"
 
     init {
+        // Bindujemy usługę MetaWear BtleService
         reactContext.bindService(
             Intent(reactContext, BtleService::class.java),
             this, Context.BIND_AUTO_CREATE
@@ -152,5 +153,28 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
                 }
             }
         }
+    }
+
+//    @ReactMethod
+//    fun getSensorData(promise: Promise) {
+//        val dataList = sensorDataBuffer.toList()
+//        promise.resolve(Arguments.fromList(dataList))
+//        sensorDataBuffer.clear()
+//    }
+
+    @ReactMethod
+    fun addListener(eventName: String) {
+        // Wymagane przez React Native (do DeviceEventEmitter)
+    }
+
+    @ReactMethod
+    fun removeListeners(count: Int) {
+        // Wymagane przez React Native (do DeviceEventEmitter)
+    }
+
+    override fun onCatalystInstanceDestroy() {
+        super.onCatalystInstanceDestroy()
+        board?.disconnectAsync()
+        reactContext.unbindService(this)
     }
 }

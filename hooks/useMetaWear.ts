@@ -30,6 +30,8 @@ export const useMetaWear = (): UseMetaWearResult => {
 
   useEffect(() => {
     if (!connectedDevice) return;
+
+    const listener = (data: SensorDataStream) => {
       if (
         !Array.isArray(data.accelerometer) ||
         data.accelerometer.length !== 3 ||
