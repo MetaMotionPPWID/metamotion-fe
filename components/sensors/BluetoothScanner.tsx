@@ -34,7 +34,7 @@ export const BluetoothScanner = ({ metaWearState }: Props) => {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.warn("❌ Location not accepted.");
+          console.warn("Location not accepted.");
         }
       }
     };
