@@ -1,5 +1,6 @@
 package com.anonymous.metamotionfe
 
+import android.util.Log
 import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
@@ -27,35 +28,56 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
 
     private var latestAccel: Acceleration? = null
     private var latestGyro: AngularVelocity? = null
+    private var serviceReady: Boolean = false
+
+    init {
+        // Inicjalizacja i bindowanie do usługi BLE
+        reactContext.bindService(
+            Intent(reactContext, BtleService::class.java),
+            this, Context.BIND_AUTO_CREATE
+        )
+    }
 
     override fun getName() = "MetaWearModule"
 
     override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
         serviceBinder = service as? BtleService.LocalBinder
+        serviceReady = true
+        Log.i("MetaWearModule", "✅ BtleService connected.")
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
         serviceBinder = null
+        serviceReady = false
+        Log.w("MetaWearModule", "⚠️ BtleService disconnected.")
     }
 
     @ReactMethod
     fun connectToDevice(macAddress: String, promise: Promise) {
+        Log.i("MetaWearModule", "🔌 Próba połączenia. serviceReady=$serviceReady")
+
+        if (!serviceReady || serviceBinder == null) {
+            promise.reject("SERVICE_ERROR", "Bluetooth service not yet bound. Try again shortly.")
+            return
+        }
+
         val bluetoothManager = reactContext.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         val btDevice = bluetoothManager.adapter.getRemoteDevice(macAddress)
 
         val boardInstance = serviceBinder?.getMetaWearBoard(btDevice)
         if (boardInstance == null) {
-            promise.reject("SERVICE_ERROR", "Bluetooth service not bound or board not found")
+            promise.reject("SERVICE_ERROR", "Bluetooth service bound, but board not found")
             return
         }
+
         board = boardInstance
         boardInstance.connectAsync().continueWith { task ->
             if (task.isFaulted) {
                 promise.reject("CONN_ERROR", task.error)
             } else {
                 if (boardInstance.isConnected) {
-                    Log.i("MetaWear", "Device connected")
-                    setupSensors()  // <-- tylko wtedy startuj stream
+                    Log.i("MetaWear", "✅ Urządzenie połączone")
+                    setupSensors()
                     promise.resolve("Connected to MetaWear device: $macAddress")
                 } else {
                     promise.reject("NOT_CONNECTED", "Board is not connected after connectAsync()")
@@ -74,6 +96,7 @@ class MetaWearModule(private val reactContext: ReactApplicationContext) :
             promise.reject("SERVICE_ERROR", "Bluetooth service not bound or board not found")
             return
         }
+
         board = boardInstance
         boardInstance.disconnectAsync().continueWith { task ->
             if (task.isFaulted) {
