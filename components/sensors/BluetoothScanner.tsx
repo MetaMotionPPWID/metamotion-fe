@@ -11,6 +11,7 @@ import { BleManager, Device } from "react-native-ble-plx";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import { ThemedText } from "@/components/ui/ThemedText";
 import { UseMetaWearResult } from "@/hooks/types";
+import { PermissionsAndroid, Platform } from "react-native";
 
 type Props = {
   metaWearState: UseMetaWearResult;
@@ -26,38 +27,55 @@ export const BluetoothScanner = ({ metaWearState }: Props) => {
 
   useEffect(() => {
     let scanTimeout: NodeJS.Timeout;
-    const subscription = bleManager.onStateChange((state) => {
-      if (state === "PoweredOn") {
-        subscription.remove();
-        setIsSearching(true);
 
-        bleManager.startDeviceScan(null, null, (error, device) => {
-          if (error) {
-            console.error("Scan error:", error);
-            setIsSearching(false);
-            return;
-          }
-
-          if (device) {
-            setSensors((prevSensors) => {
-              if (!prevSensors.find((d) => d.id === device.id)) {
-                return [...prevSensors, device];
-              }
-              return prevSensors;
-            });
-          }
-        });
-
-        scanTimeout = setTimeout(() => {
-          bleManager.stopDeviceScan();
-          bleManager.destroy();
-          setIsSearching(false);
-        }, 10000);
+    const requestPermissions = async () => {
+      if (Platform.OS === "android") {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.warn("Location not accepted.");
+        }
       }
-    }, true);
+    };
+
+    const initScan = async () => {
+      await requestPermissions();
+
+      const subscription = bleManager.onStateChange((state) => {
+        if (state === "PoweredOn") {
+          subscription.remove();
+          setIsSearching(true);
+
+          bleManager.startDeviceScan(null, null, (error, device) => {
+            if (error) {
+              console.error("Scan error:", error);
+              setIsSearching(false);
+              return;
+            }
+
+            if (device) {
+              setSensors((prevSensors) => {
+                if (!prevSensors.find((d) => d.id === device.id)) {
+                  return [...prevSensors, device];
+                }
+                return prevSensors;
+              });
+            }
+          });
+
+          scanTimeout = setTimeout(() => {
+            bleManager.stopDeviceScan();
+            bleManager.destroy();
+            setIsSearching(false);
+          }, 10000);
+        }
+      }, true);
+    };
+
+    initScan();
 
     return () => {
-      subscription.remove();
       bleManager.stopDeviceScan();
       bleManager.destroy();
       if (scanTimeout) {
