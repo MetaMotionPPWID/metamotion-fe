@@ -29,10 +29,7 @@ export const useMetaWear = (): UseMetaWearResult => {
   }, [currentLabel]);
 
   useEffect(() => {
-    if (!connectedDevice) return; // 🔐 nie zaczynaj nasłuchu dopóki nie ustawione
-
-    const listener = (data: SensorDataStream) => {
-        console.log("📦 Data received:", data);
+    if (!connectedDevice) return;
       if (
         !Array.isArray(data.accelerometer) ||
         data.accelerometer.length !== 3 ||
