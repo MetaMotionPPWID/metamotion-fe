@@ -32,9 +32,12 @@ export const useMetaWear = (): UseMetaWearResult => {
     if (!connectedDevice) return; // 🔐 nie zaczynaj nasłuchu dopóki nie ustawione
 
     const listener = (data: SensorDataStream) => {
+        console.log("📦 Data received:", data);
       if (
         !Array.isArray(data.accelerometer) ||
-        !Array.isArray(data.gyroscope)
+        data.accelerometer.length !== 3 ||
+        !Array.isArray(data.gyroscope) ||
+        data.gyroscope.length !== 3
       ) {
         console.warn("Invalid data format:", data);
         return;
