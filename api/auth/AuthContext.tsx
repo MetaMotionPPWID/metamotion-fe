@@ -21,7 +21,7 @@ export const AuthContext = createContext<AuthContextType>({
   isLoading: true,
 });
 
-const MAX_TOKEN_AGE = 30 * 60 * 1000; // 30 min fallback
+const MAX_TOKEN_AGE = Number.MAX_SAFE_INTEGER;
 
 const isExpired = (token: string, storedAt: number): boolean => {
   const { exp } = jwtDecode<{ exp?: number }>(token); // exp is seconds
@@ -32,7 +32,6 @@ const isExpired = (token: string, storedAt: number): boolean => {
 
   return Date.now() - storedAt >= MAX_TOKEN_AGE;
 };
-/* -------------------------------- */
 
 export const AuthProvider = ({ children }: Props) => {
   const [accessToken, setAccessToken] = useState<string | null>(null);
