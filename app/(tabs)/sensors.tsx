@@ -20,8 +20,8 @@ export default function SensorsScreen() {
   const currentHand = useBearStore((state) => state.currentHand);
   const setCurrentHand = useBearStore((state) => state.setCurrentHand);
 
-  const currentLabel = useBearStore((state) => state.currentLabel);
-  const setCurrentLabel = useBearStore((state) => state.setCurrentLabel);
+  // const currentLabel = useBearStore((state) => state.currentLabel);
+  // const setCurrentLabel = useBearStore((state) => state.setCurrentLabel);
 
   const metaWearState = useMetaWear();
 
@@ -51,16 +51,16 @@ export default function SensorsScreen() {
             { label: "Right", value: "right" },
           ]}
         />
-        <ThemedPicker
-          label="Activity label"
-          value={currentLabel}
-          onChange={setCurrentLabel}
-          options={[
-            { label: "Sitting", value: "sitting" },
-            { label: "Walking", value: "walking" },
-            { label: "Running", value: "running" },
-          ]}
-        />
+        {/*<ThemedPicker*/}
+        {/*  label="Activity label"*/}
+        {/*  value={currentLabel}*/}
+        {/*  onChange={setCurrentLabel}*/}
+        {/*  options={[*/}
+        {/*    { label: "Sitting", value: "sitting" },*/}
+        {/*    { label: "Walking", value: "walking" },*/}
+        {/*    { label: "Running", value: "running" },*/}
+        {/*  ]}*/}
+        {/*/>*/}
       </ThemedView>
 
       {metaWearState.connectedDevice && (
